@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lidar_localizer_msg</name>
+  <version>0.0.0</version>
+  <!-- TODO CHANGE -->
+  <description>Utilities to setup and run data for ndt mapping </description>
+
+  <author email="kin_eng@163.com">Kin ZHANG</author>
+  <maintainer email="kin_eng@163.com">Kin ZHANG</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <depend>message_generation</depend>
+  <depend>message_runtime</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+  </export>
+</package>

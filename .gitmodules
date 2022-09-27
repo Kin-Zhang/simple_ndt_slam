@@ -1,0 +1,3 @@
+[submodule "catkin_simple"]
+	path = catkin_simple
+	url = https://gitee.com/kin_zhang/catkin_simple.git

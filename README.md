@@ -1,6 +1,7 @@
 # 简易版建图/定位
 
-主要从[autoware.ai 1.14版本core_perception](https://github.com/Autoware-AI/core_perception) **<u>抽取并重构</u>**，仅留下与mapping相关代码 较为简洁 容易部署版 拿到odom
+主要从[autoware.ai 1.14版本core_perception](https://github.com/Autoware-AI/core_perception) **<u>抽取并重构</u>**
+仅留下与mapping相关代码 较为简洁 容易部署版 拿到odom；已测试平台 1x1m 小车（Velodyne-16），机器狗（Robosense-16）主要注意topic name对应即可使用
 
 测试系统：【注意 由于boost库限制，Ubuntu 20.04 无法运行，如想在20.04上运行 请从docker里弄 将roscore映射好就行】
 
@@ -13,35 +14,66 @@
 
 # 使用说明
 
-## docker
+## Option: docker
+
+### image pull/build
+
+推荐使用 这样就不用担心自己的环境了
 
 ```bash
-docker push zhangkin/ndt_mapping
-docker run TODO
+docker pull zhangkin/ndt_mapping:refactor
 ```
 
-## 编译
+或者docker build也行 注意把dockerfile 复制一下 然后build
+
+```bash
+docker build -t zhangkin/ndt_mapping:refactor .
+```
+
+### run container
+
+```bash
+docker run -it --net=host --name ndt_slam zhangkin/ndt_mapping:refactor /bin/zsh
+git pull
+catkin build -DCMAKE_BUILD_TYPE=Release
+roscore
+
+# 另开一个终端
+docker exec -it ndt_slam /bin/zsh
+source devel/setup.zsh
+roslaunch lidar_localizer ndt_mapping_docker.launch
+```
+
+然后在自身系统正常播包即可，如下图所示
+
+![](assets/readme/example_container.png)
+
+## 拉取 && 编译
+
+注意，如果使用的是docker内无需进行pull操作 直接编译即可
 
 ```bash
 mkdir -p ~/workspace/mapping_ws
 cd ~/workspace/mapping_ws
-git clone https://gitee.com/kin_zhang/mapping_ws.git
-mv mapping_ws src
+git clone --recurse-submodules https://github.com/Kin-Zhang/simple_ndt_slam
+mv simple_ndt_slam src
 ```
 
 安装相关依赖（一些ROS包和glog）
 
 ```bash
 cd src
-./assets/setup_lib.sh
+sudo chmod +x ./assets/scripts/setup_lib.sh
+./assets/scripts/setup_lib.sh
 ```
 
-然后再编译
+最后编译 然后经过如下调整相关topic name，参数 和**bag包路径**设置即可直接运行
 
 ```bash
 cd ~/workspace/mapping_ws
-catkin build
+catkin build -DCMAKE_BUILD_TYPE=Release
 source devel/setup.zsh
+roslaunch lidar_localizer ndt_mapping.launch
 ```
 
 ## 调参
@@ -91,7 +123,7 @@ roslaunch lidar_localizer ndt_mapping.launch
 
 ```bash
 rosservice call /save_map '/home/kin/ri_dog.pcd' 0.0
-rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 80% points
+rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter voxel
 ```
 
 如图所示：
@@ -112,7 +144,7 @@ rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 80% points
 相关使用视频：
 
 1. [Autoware原装GUI配合使用 bilibili](https://www.bilibili.com/video/BV1k84y1F7xn)
-2. [此分支安装及使用视频](TODO)
+2. [此分支安装及使用视频](https://www.bilibili.com/video/BV18e4y1k7cA/)
 
 后续继续补充时，也会更新相关博文或视频进行说明
 
@@ -123,3 +155,18 @@ rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 80% points
 1. 参考开源包，后续加入回环（g2o/gtsam方式）
 2. 做一个建图的GUI以方便大家使用，提供安装包直接安装 无需源码编译版
 
+# Acknowledgement
+
+- Style Formate: [https://github.com/ethz-asl/linter](https://github.com/ethz-asl/linter)
+
+  ```bash
+  cd $YOUR_REPO
+  init_linter_git_hooks # install
+  linter_check_all # run
+  
+  init_linter_git_hooks --remove # remove
+  ```
+
+  
+
+- Autoware.ai core_perception: [core_perception](https://github.com/Autoware-AI/core_perception) 

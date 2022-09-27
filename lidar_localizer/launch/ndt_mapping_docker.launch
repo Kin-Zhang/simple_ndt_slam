@@ -1,0 +1,11 @@
+<launch>
+  <!-- <param name="use_sim_time" value="true" /> -->
+  <node pkg="lidar_localizer" type="queue_counter" name="queue_counter_node" output="screen">
+    <rosparam command="load" file="$(find lidar_localizer)/config/ndt_mapping.yaml"/>
+  </node>
+
+  <node pkg="lidar_localizer" type="ndt_mapping" name="ndt_mapping_node" output="screen">
+    <rosparam command="load" file="$(find lidar_localizer)/config/ndt_mapping.yaml"/>
+  </node>
+
+</launch>

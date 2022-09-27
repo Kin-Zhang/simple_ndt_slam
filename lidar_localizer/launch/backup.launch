@@ -1,0 +1,11 @@
+<arg name="record_bag" default="/home/kin/bags/dog/res_odom.bag" />
+<node pkg="rosbag" type="record" name="bag_record" args="--output-name $(arg record_bag) /auto_odom /offset_leg_odom" />
+
+<arg name="record_bag" default="/home/kin/bags/dog/res_odom_lidar.bag" />
+<node pkg="rosbag" type="record" name="bag_record" args="--output-name $(arg record_bag) /auto_odom /odom_lidar /tf" />
+
+<arg name="record_bag" default="/home/kin/bags/dog/res_odom_lidar.bag" />
+<node pkg="rosbag" type="record" name="bag_record" args="--output-name $(arg record_bag) /auto_odom /odom_lidar /tf" />
+
+
+<node pkg="tf" type="static_transform_publisher" name="bl2odom" args="0 0 0 0 0 0 base_link odom 10" />
