@@ -32,10 +32,6 @@
 #include <std_msgs/Float32.h>
 
 #include <glog/logging.h>
-#include <pcl/io/io.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
 
 static int enqueue = 0;
