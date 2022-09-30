@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-std=c++14 -pthread -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 # NOTE: CHOOSE THE O2/O3 is really important for speed! check more on optimization on compile
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
