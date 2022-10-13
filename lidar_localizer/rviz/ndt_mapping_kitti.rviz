@@ -12,7 +12,7 @@ Panels:
         - /Odometry2/Shape1
         - /PointCloud23
       Splitter Ratio: 0.5205479264259338
-    Tree Height: 1032
+    Tree Height: 441
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -107,8 +107,8 @@ Visualization Manager:
     - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 14.644599914550781
-        Min Value: -4.495145320892334
+        Max Value: 17.024084091186523
+        Min Value: -2.6594314575195312
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -307,25 +307,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 76.01103973388672
+      Distance: 46.798240661621094
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -4.2390289306640625
-        Y: -4.685732364654541
+        X: -18.057674407958984
+        Y: -6.654988765716553
         Z: 3.814697265625e-6
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1903973817825317
+      Pitch: 1.0703978538513184
       Target Frame: base_link
       Value: ThirdPersonFollower (rviz)
-      Yaw: 3.2603774070739746
+      Yaw: 3.07537579536438
     Saved: ~
 Window Geometry:
   Displays:

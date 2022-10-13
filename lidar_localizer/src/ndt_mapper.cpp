@@ -1,8 +1,6 @@
 #include <omp.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/segmentation/extract_clusters.h>
 #include <pcl/filters/extract_indices.h>
-
+#include <pcl/segmentation/approximate_progressive_morphological_filter.h>
 // our define
 #include "ndt_mapper.h"
 #include "timer.h"
@@ -104,7 +102,7 @@ void NDTMapper::points_callback(
       TRE;
       pcl::PointCloud<pcl::PointXYZI>::Ptr nofloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZI>);
       pcl::PointCloud<pcl::PointXYZI>::Ptr onlyfloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZI>);
-      removeFloor<pcl::PointXYZI>(scan_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle);
+      removeFloor<pcl::PointXYZI>(scan_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr);
       sensor_msgs::PointCloud2 cloud_msg;
       if (_pub_ground_cloud)
         pcl::toROSMsg(*onlyfloor_cloud_ptr, cloud_msg);
@@ -214,28 +212,25 @@ void NDTMapper::imu_callback(const sensor_msgs::Imu::Ptr &input) {
 template <typename PointT>
 void NDTMapper::removeFloor(const typename pcl::PointCloud<PointT>::Ptr in_cloud_ptr,
                            typename pcl::PointCloud<PointT>::Ptr out_nofloor_cloud_ptr,
-                           typename pcl::PointCloud<PointT>::Ptr out_onlyfloor_cloud_ptr,
-                           double in_max_height, double in_floor_max_angle)
+                           typename pcl::PointCloud<PointT>::Ptr out_onlyfloor_cloud_ptr)
 {
-  pcl::SACSegmentation<PointT> seg;
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-  pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
 
-  seg.setOptimizeCoefficients(true);
-  seg.setModelType(pcl::SACMODEL_PLANE); // [SACMODEL_PLANE, SACMODEL_PERPENDICULAR_PLANE]
-  seg.setMethodType(pcl::SAC_RANSAC);
-  seg.setMaxIterations(100);
-  seg.setAxis(Eigen::Vector3f(0, 0, 1));
-  seg.setEpsAngle(in_floor_max_angle);
+  // Create the filtering object ref: https://pointclouds.org/documentation/tutorials/progressive_morphological_filtering.html
+  pcl::ApproximateProgressiveMorphologicalFilter<PointT> pmf;
+  pmf.setExponential(false);
+  pmf.setNumberOfThreads(4);
+  pmf.setCellSize(config_.cell_size);
+  pmf.setInputCloud(in_cloud_ptr);
+  pmf.setMaxWindowSize(config_.max_window_size); // smaller is better
+  pmf.setSlope(config_.slope);
+  pmf.setInitialDistance(config_.initial_distance);
+  pmf.setMaxDistance(config_.max_distance);
+  pmf.extract(inliers->indices);
 
-  seg.setDistanceThreshold(in_max_height);  // floor distance
-  seg.setOptimizeCoefficients(true);
-  seg.setInputCloud(in_cloud_ptr);
-  seg.segment(*inliers, *coefficients);
+  // Check whether zero
   if (inliers->indices.size() == 0)
-  {
-    std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
-  }
+    LOG(WARNING) << "Could not estimate a planar model for the given dataset.";
 
   // REMOVE THE FLOOR FROM THE CLOUD
   pcl::ExtractIndices<PointT> extract;
@@ -384,8 +379,12 @@ void NDTMapper::setConfig() {
   nh_private_.getParam("min_add_scan_shift", config_.min_add_scan_shift);
   nh_private_.getParam("save_frame_point", config_.save_frame_point);
 
-  nh_private_.getParam("in_max_height", _in_max_height);
-  nh_private_.getParam("in_floor_max_angle", _in_floor_max_angle);
+  // PMF ground remove
+  nh_private_.getParam("max_window_size", config_.max_window_size);
+  nh_private_.getParam("slope", config_.slope);
+  nh_private_.getParam("initial_distance", config_.initial_distance);
+  nh_private_.getParam("max_distance", config_.max_distance);
+  nh_private_.getParam("cell_size", config_.cell_size);
 
   std::cout << "======================================> PARAM" << std::endl;
   std::cout << "lidar_topic: " << _lidar_topic << std::endl;

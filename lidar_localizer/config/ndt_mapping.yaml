@@ -51,5 +51,7 @@ min_add_scan_shift: 0.2
 # parameter's for segmentation on ground pt =========================== >
 process_ground_cloud: true
 pub_ground_cloud: false
-in_max_height: 0.2
-in_floor_max_angle: 0.1
+max_window_size: 20
+slope: 1.0
+initial_distance: 0.5
+max_distance: 3.0

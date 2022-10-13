@@ -119,6 +119,13 @@ public:
     double min_scan_range = 5.0;
     double max_scan_range = 200.0;
     double min_add_scan_shift = 1.0;
+
+    // default param for PMF
+    int max_window_size = 1;
+    float slope = 1.0;
+    float initial_distance = 0.5;
+    float max_distance = 2.0;
+    float cell_size = 0.5; // inside function default is 1
   };
 
   NDTMapper(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private);
@@ -151,8 +158,7 @@ public:
   template <typename PointT>
   void removeFloor(const typename pcl::PointCloud<PointT>::Ptr in_cloud_ptr,
                    typename pcl::PointCloud<PointT>::Ptr out_nofloor_cloud_ptr,
-                   typename pcl::PointCloud<PointT>::Ptr out_onlyfloor_cloud_ptr,
-                   double in_max_height, double in_floor_max_angle);
+                   typename pcl::PointCloud<PointT>::Ptr out_onlyfloor_cloud_ptr);
 
   // METHOD CHOOSE TODO
   cpu::NormalDistributionsTransform<pcl::PointXYZI, pcl::PointXYZI> ndt_;
@@ -232,9 +238,6 @@ private:
   double transformation_probability;
   int final_num_iteration;
   bool has_converged;
-
-  // SAC
-  double _in_max_height, _in_floor_max_angle;
 
   // save lock resource
   std::mutex lockPointCloud;

@@ -40,10 +40,10 @@ max_iterations: 30
 leaf_size: 1.0
 
 # Ignore points closer than this value (meters) (default 5.0)
-min_scan_range: 5.0
+min_scan_range: 2.0
 
 # Ignore points far than this value (meters) (default 200.0)
-max_scan_range: 200.0
+max_scan_range: 50.0
 
 # Minimum distance between points to be added to the final map (default 1.0)
 min_add_scan_shift: 1.0
@@ -51,5 +51,24 @@ min_add_scan_shift: 1.0
 # parameter's for segmentation on ground pt =========================== >
 process_ground_cloud: true
 pub_ground_cloud: false
-in_max_height: 0.5
-in_floor_max_angle: 0.2
+# # threshold for window 2kb+1
+# max_window_size: 10
+# # voxel size smaller is better but the
+# cell_size: 0.25
+# # based on the scenarios slope degree ==> TODO through height and window size as paper said
+# slope: 2.0
+# # when window < 3, elevation height initial dis
+# initial_distance: 0.1
+# # when elevation > max distance, threshold to max_distance
+# max_distance: 2.0
+# ===
+# threshold for window 2kb+1
+max_window_size: 3
+# voxel size smaller is better but the
+cell_size: 0.1
+# based on the scenarios slope degree ==> TODO through height and window size as paper said
+slope: 1.0
+# when window < 3, elevation height initial dis
+initial_distance: 0.1
+# when elevation > max distance, threshold to max_distance
+max_distance: 1.0
