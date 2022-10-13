@@ -1,4 +1,7 @@
 #include <omp.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/filters/extract_indices.h>
 
 // our define
 #include "ndt_mapper.h"
@@ -26,6 +29,7 @@ void NDTMapper::setupRos() {
       nh_.advertise<sensor_msgs::PointCloud2>(_odom_lidar_topic, 10);
   current_odom_pub = nh_.advertise<nav_msgs::Odometry>(_output_odom_topic, 10);
   offset_odom_pub = nh_.advertise<nav_msgs::Odometry>(_output_offset_odom, 10);
+  ground_pt_pub = nh_.advertise<sensor_msgs::PointCloud2>("/ground_pt", 10);
 
   points_sub =
       nh_.subscribe(_lidar_topic, 10, &NDTMapper::points_callback, this);
@@ -96,6 +100,21 @@ void NDTMapper::points_callback(
 
   double shift = (current_pose - added_pose).calDistance();
   if (shift >= config_.min_add_scan_shift) {
+    if (_process_ground_cloud){
+      TRE;
+      pcl::PointCloud<pcl::PointXYZI>::Ptr nofloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZI>);
+      pcl::PointCloud<pcl::PointXYZI>::Ptr onlyfloor_cloud_ptr(new pcl::PointCloud<pcl::PointXYZI>);
+      removeFloor<pcl::PointXYZI>(scan_ptr, nofloor_cloud_ptr, onlyfloor_cloud_ptr, _in_max_height, _in_floor_max_angle);
+      sensor_msgs::PointCloud2 cloud_msg;
+      if (_pub_ground_cloud)
+        pcl::toROSMsg(*onlyfloor_cloud_ptr, cloud_msg);
+      else
+        pcl::toROSMsg(*nofloor_cloud_ptr, cloud_msg);
+      cloud_msg.header.frame_id = lidar_frame;
+      cloud_msg.header.stamp = current_scan_time;
+      ground_pt_pub.publish(cloud_msg);
+      TOC("GROUND SEG REMOVE", _debug_print);
+    }
     TRE;
     added_pose = current_pose;
 
@@ -191,6 +210,45 @@ void NDTMapper::odom_callback(const nav_msgs::Odometry::ConstPtr &input) {
 void NDTMapper::imu_callback(const sensor_msgs::Imu::Ptr &input) {
   // TODO
 }
+
+template <typename PointT>
+void NDTMapper::removeFloor(const typename pcl::PointCloud<PointT>::Ptr in_cloud_ptr,
+                           typename pcl::PointCloud<PointT>::Ptr out_nofloor_cloud_ptr,
+                           typename pcl::PointCloud<PointT>::Ptr out_onlyfloor_cloud_ptr,
+                           double in_max_height, double in_floor_max_angle)
+{
+  pcl::SACSegmentation<PointT> seg;
+  pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+  pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+
+  seg.setOptimizeCoefficients(true);
+  seg.setModelType(pcl::SACMODEL_PLANE); // [SACMODEL_PLANE, SACMODEL_PERPENDICULAR_PLANE]
+  seg.setMethodType(pcl::SAC_RANSAC);
+  seg.setMaxIterations(100);
+  seg.setAxis(Eigen::Vector3f(0, 0, 1));
+  seg.setEpsAngle(in_floor_max_angle);
+
+  seg.setDistanceThreshold(in_max_height);  // floor distance
+  seg.setOptimizeCoefficients(true);
+  seg.setInputCloud(in_cloud_ptr);
+  seg.segment(*inliers, *coefficients);
+  if (inliers->indices.size() == 0)
+  {
+    std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
+  }
+
+  // REMOVE THE FLOOR FROM THE CLOUD
+  pcl::ExtractIndices<PointT> extract;
+  extract.setInputCloud(in_cloud_ptr);
+  extract.setIndices(inliers);
+  extract.setNegative(true);  // true removes the indices, false leaves only the indices
+  extract.filter(*out_nofloor_cloud_ptr);
+
+  // EXTRACT THE FLOOR FROM THE CLOUD
+  extract.setNegative(false);  // true removes the indices, false leaves only the indices
+  extract.filter(*out_onlyfloor_cloud_ptr);
+}
+
 
 Eigen::Matrix4f NDTMapper::Pose2Matrix(const Pose &p) {
   Eigen::AngleAxisf rotation_x(p.roll, Eigen::Vector3f::UnitX());
@@ -304,6 +362,8 @@ void NDTMapper::getTF() {
 void NDTMapper::setConfig() {
   nh_private_.getParam("use_odom", _use_odom);
   nh_private_.getParam("use_imu", _use_imu);
+  nh_private_.getParam("process_ground_cloud", _process_ground_cloud);
+  nh_private_.getParam("pub_ground_cloud", _pub_ground_cloud);
   nh_private_.getParam("imu_upside_down", _imu_upside_down);
   nh_private_.getParam("odom_inverse", _odom_inverse);
   nh_private_.getParam("imu_topic", _imu_topic);
@@ -323,6 +383,9 @@ void NDTMapper::setConfig() {
   nh_private_.getParam("max_scan_range", config_.max_scan_range);
   nh_private_.getParam("min_add_scan_shift", config_.min_add_scan_shift);
   nh_private_.getParam("save_frame_point", config_.save_frame_point);
+
+  nh_private_.getParam("in_max_height", _in_max_height);
+  nh_private_.getParam("in_floor_max_angle", _in_floor_max_angle);
 
   std::cout << "======================================> PARAM" << std::endl;
   std::cout << "lidar_topic: " << _lidar_topic << std::endl;

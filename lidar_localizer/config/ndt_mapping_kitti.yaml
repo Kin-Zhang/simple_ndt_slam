@@ -47,3 +47,9 @@ max_scan_range: 200.0
 
 # Minimum distance between points to be added to the final map (default 1.0)
 min_add_scan_shift: 1.0
+
+# parameter's for segmentation on ground pt =========================== >
+process_ground_cloud: true
+pub_ground_cloud: false
+in_max_height: 0.5
+in_floor_max_angle: 0.2

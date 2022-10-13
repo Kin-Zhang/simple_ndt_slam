@@ -146,6 +146,13 @@ public:
                  static_cast<double>(t(2, 2)));
     return mat;
   }
+  
+  // Useful function
+  template <typename PointT>
+  void removeFloor(const typename pcl::PointCloud<PointT>::Ptr in_cloud_ptr,
+                   typename pcl::PointCloud<PointT>::Ptr out_nofloor_cloud_ptr,
+                   typename pcl::PointCloud<PointT>::Ptr out_onlyfloor_cloud_ptr,
+                   double in_max_height, double in_floor_max_angle);
 
   // METHOD CHOOSE TODO
   cpu::NormalDistributionsTransform<pcl::PointXYZI, pcl::PointXYZI> ndt_;
@@ -187,7 +194,7 @@ private:
   // Subscribers, Publishers, Services, Timers.
   ros::Publisher current_odom_pub, offset_odom_pub;
   ros::Publisher current_pose_pub, path_viz_pub;
-  ros::Publisher ndt_map_pub, current_lidar_pub;
+  ros::Publisher ndt_map_pub, current_lidar_pub, ground_pt_pub;
   ros::Subscriber points_sub, odom_sub, imu_sub;
 
   ros::ServiceServer save_map_srv;
@@ -210,6 +217,8 @@ private:
   bool _odom_inverse = false;
   bool _debug_print = true;
   bool _incremental_voxel_update = false;
+  bool _process_ground_cloud = false;
+  bool _pub_ground_cloud = false;
 
   std::string _imu_topic = "/imu_raw";
   std::string _lidar_topic = "points_raw";
@@ -223,6 +232,9 @@ private:
   double transformation_probability;
   int final_num_iteration;
   bool has_converged;
+
+  // SAC
+  double _in_max_height, _in_floor_max_angle;
 
   // save lock resource
   std::mutex lockPointCloud;
