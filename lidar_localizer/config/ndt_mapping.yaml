@@ -51,7 +51,14 @@ min_add_scan_shift: 0.2
 # parameter's for segmentation on ground pt =========================== >
 process_ground_cloud: true
 pub_ground_cloud: false
-max_window_size: 20
+# ===
+# threshold for window 2kb+1
+max_window_size: 3
+# voxel size smaller is better but the
+cell_size: 0.1
+# based on the scenarios slope degree ==> TODO through height and window size as paper said
 slope: 1.0
-initial_distance: 0.5
-max_distance: 3.0
+# when window < 3, elevation height initial dis
+initial_distance: 0.1
+# when elevation > max distance, threshold to max_distance
+max_distance: 1.0
