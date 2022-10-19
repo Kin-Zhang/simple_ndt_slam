@@ -9,7 +9,7 @@
     <rosparam command="load" file="$(find lidar_localizer)/config/ndt_mapping_kitti.yaml"/>
   </node>
 
-  <arg name="bag_file" default="/home/kin/bags/kitti/semantickitti_sequence11.bag" />
+  <arg name="bag_file" default="/home/kin/bags/kitti/kitti_sequence11_half.bag" />
   <node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_file) --clock -r 0.8" required="false"/>
 
   <arg name="record_bag" default="/home/kin/bags/kitti/res_odom_lidar.bag" />

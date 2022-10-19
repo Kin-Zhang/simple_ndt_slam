@@ -1,4 +1,6 @@
-# 简易版建图/定位
+# 简易版建图/定位 Simple-ndt-Slam
+
+English version on readme, please check on personal website: [projects/simple_ndt_slam](https://kin-zhang.github.io/projects/simple_ndt_slam) ; Update: download test Kitti dataset bag: [onedrive link: kitti_sequence11_half.bag](https://hkustconnect-my.sharepoint.com/:u:/g/personal/qzhangcb_connect_ust_hk/EXqmutFjAbpPsYVe5r91KXEBhLlqP7anlNBJqTMHIOkfqw?e=RoRVgF) and follow building steps, modify the bag path in `ndt_mapping_kitti.launch` and roslaunch it.
 
 主要从[autoware.ai 1.14版本core_perception](https://github.com/Autoware-AI/core_perception) **<u>抽取并重构</u>** 速度上得到了一定的提升
 仅留下与slam相关代码 较为简洁 容易部署版并拿到odom；已测试平台 1x1m 小车（Velodyne-16），机器狗（Robosense-16）主要注意topic name对应即可使用
