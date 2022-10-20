@@ -741,7 +741,7 @@ void VoxelGrid<PointSourceType>::updateVoxelContent(typename pcl::PointCloud<Poi
 
     // Update centroids
     int ipoint_num = (*points_id_)[vid].size();
-    (*centroid_)[vid] = (*tmp_centroid_)[vid] / static_cast<double>(ipoint_num);
+    // (*centroid_)[vid] = (*tmp_centroid_)[vid] / static_cast<double>(ipoint_num);
     (*points_per_voxel_)[vid] = ipoint_num;
 
 
