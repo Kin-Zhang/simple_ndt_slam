@@ -5,8 +5,9 @@ English version on readme, please check on personal website: [projects/simple_nd
 主要从[autoware.ai 1.14版本core_perception](https://github.com/Autoware-AI/core_perception) **<u>抽取并重构</u>** 速度上得到了一定的提升
 仅留下与slam相关代码 较为简洁 容易部署版并拿到odom；已测试平台 1x1m 小车（Velodyne-16），机器狗（Robosense-16）主要注意topic name对应即可使用
 
-测试系统：【注意 由于boost库版本限制(<1.65)，Ubuntu 20.04 无法运行，如想在20.04上运行 请从docker里弄 将roscore映射好就行】
+测试系统：
 
+- Ubuntu 20.04 ROS noetic
 - Ubuntu 18.04 ROS melodic
 - Ubuntu 16.04 ROS kinetic
 
