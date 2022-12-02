@@ -47,7 +47,7 @@ static void points_callback(const sensor_msgs::PointCloud2::ConstPtr &input) {
 
 static void ndt_pose_callback(const geometry_msgs::PoseStamped &msg) {
   dequeue++;
-  if(_debug_print)
+  if (_debug_print)
     LOG(INFO) << "(Processed/Input): (" << dequeue << " / " << enqueue << ")"
               << std::endl;
 }

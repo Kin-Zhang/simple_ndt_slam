@@ -62,7 +62,7 @@ inline double Timer::EndThenReset() {
 
 inline void Timer::End(const std::string &description, const bool ifPrint) {
   double t = End();
-  if(ifPrint)
+  if (ifPrint)
     fprintf(stdout, "%s[%s]%s takes %f ms\n", ANSI_BLUE, description.c_str(),
             ANSI_RESET, t);
   EndThenReset();

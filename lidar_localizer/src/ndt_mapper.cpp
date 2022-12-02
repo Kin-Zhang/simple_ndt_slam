@@ -1,3 +1,12 @@
+/**
+ * Copyright (C) 2022, IADC, Hong Kong University of Science and Technology
+ * MIT License
+ * Author: Kin ZHANG (https://kin-zhang.github.io/)
+ * Date: 2022-11-05
+ * Description: the main file for ndt cal the translation between to points and
+ * then publish the msg
+ */
+
 #include <omp.h>
 
 // our define
@@ -131,7 +140,6 @@ void NDTMapper::points_callback(
         map.erase(oldest, end_num);
       }
     }
-
   }
 
   pubOtherMsgs(input); // publish msg including odom, lidar, path_vis
@@ -145,9 +153,10 @@ void NDTMapper::points_callback(
               << std::endl;
     std::cout << "Number of filtered scan points: " << filtered_scan_ptr->size()
               << " points." << std::endl;
-    if(transformed_scan_ptr->points.size()!=0)  
-      std::cout << "transformed_scan_ptr: " << transformed_scan_ptr->points.size()
-                << " points." << std::endl;
+    if (transformed_scan_ptr->points.size() != 0)
+      std::cout << "transformed_scan_ptr: "
+                << transformed_scan_ptr->points.size() << " points."
+                << std::endl;
     std::cout << "map: " << map.points.size() << " points." << std::endl;
     std::cout << "NDT has converged: " << has_converged << std::endl;
     std::cout << "Fitness score: " << fitness_score << std::endl;
@@ -336,7 +345,7 @@ void NDTMapper::setConfig() {
             << std::endl;
   std::cout << "PARAM <====================================== " << std::endl;
 
-  if(_debug_print)
+  if (_debug_print)
     google::SetStderrLogging(google::INFO);
   else
     google::SetStderrLogging(google::WARNING);
@@ -437,10 +446,12 @@ bool NDTMapper::saveMap(lidar_localizer_msg::SaveMap::Request &req,
     voxel_grid_filter.filter(*map_filtered);
     pcl::io::savePCDFileASCII(save_map_path, *map_filtered);
     std::cout << "Original: " << map.points.size() << " points." << std::endl;
-    std::cout << "Filtered: " << map_filtered->points.size() << " points." << std::endl;
+    std::cout << "Filtered: " << map_filtered->points.size() << " points."
+              << std::endl;
   }
   lockPointCloud.unlock();
-  std::cout << " ===========> SAVE MAP SUCCESS, PLEASE CHECK:" << save_map_path << std::endl;
+  std::cout << " ===========> SAVE MAP SUCCESS, PLEASE CHECK:" << save_map_path
+            << std::endl;
   TOC("SAVE MAP", true);
   std::cout
       << "-----------------------------------------------------------------"

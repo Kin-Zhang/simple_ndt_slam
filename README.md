@@ -1,103 +1,133 @@
-# 简易版建图/定位 Simple-ndt-Slam
+# Simple-ndt-Slam
 
-English version on readme, please check on personal website: [projects/simple_ndt_slam](https://kin-zhang.github.io/projects/simple_ndt_slam) ; Update: download test Kitti dataset bag: [onedrive link: kitti_sequence11_half.bag](https://hkustconnect-my.sharepoint.com/:u:/g/personal/qzhangcb_connect_ust_hk/EXqmutFjAbpPsYVe5r91KXEBhLlqP7anlNBJqTMHIOkfqw?e=RoRVgF) and follow building steps, modify the bag path in `ndt_mapping_kitti.launch` and roslaunch it.
+This package is extracted from [autoware.ai](https://github.com/Autoware-AI) 1.14.0 version, but with debug fixed, re-factor and speed up.
 
-主要从[autoware.ai 1.14版本core_perception](https://github.com/Autoware-AI/core_perception) **<u>抽取并重构</u>** 速度上得到了一定的提升
-仅留下与slam相关代码 较为简洁 容易部署版并拿到odom；已测试平台 1x1m 小车（Velodyne-16），机器狗（Robosense-16）主要注意topic name对应即可使用
+- fix the empty tf problem, [check the related pull request](https://github.com/autowarefoundation/autoware_ai_perception/pull/60)
+- speed up the whole package, more efficient than previous one, could run 10hz stably in 4-core CPU 
 
-测试系统：
+Package Usage, using one LiDAR to do SLAM, no IMU no camera needed, of course sometime the result may not good enough, These Ubuntu 16.04-20.04 system with ROS can all run this package:
 
-- Ubuntu 20.04 ROS noetic
-- Ubuntu 18.04 ROS melodic
-- Ubuntu 16.04 ROS kinetic
+- Localization
+- Mapping
+- [ing] Dynamics points remove, with [LimHyungTae/ERASOR](https://github.com/LimHyungTae/ERASOR), and Kin's fork for directly on this package also: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam)
 
-测试截图：
+<details>
+  <summary>Effects shown here [**remember modify the topic name on config**]</summary>
 
-![](assets/readme/example.png)
+   Simple_ndt_slam:
 
-# 使用说明
+   https://user-images.githubusercontent.com/35365764/205377663-ba10b9db-400a-4330-8249-f7abd69247b1.mp4
 
-## Option: docker
+   Simple_ndt_slam data to ERASOR:
 
-### image pull/build
+   https://user-images.githubusercontent.com/35365764/205382532-4a6b89b3-f639-4685-bca0-d5867b4f9ea3.mp4
 
-推荐使用 这样就不用担心自己的环境了
+   ![](assets/readme/ERASOR_effect.png)
 
+</details>
+
+<br>
+
+
+CHANGE LOG:
+
+- 2022/12/2: For more people to use this package, Change README to English version. Here is a [chinese readme before](README_CN.md)
+- 2022/10/19: Update: download test Kitti dataset bag: [onedrive link: kitti_sequence11_half.bag](https://hkustconnect-my.sharepoint.com/:u:/g/personal/qzhangcb_connect_ust_hk/EXqmutFjAbpPsYVe5r91KXEBhLlqP7anlNBJqTMHIOkfqw?e=RoRVgF) and follow building steps, modify the bag path in `ndt_mapping_kitti.launch` and roslaunch it.
+
+
+
+Real robots/dataset I tried:
+
+- 1x1m Small cars (Velodyne-16)
+- quadruped robot (Robosense-16), check [our paper website](http://kin-zhang.github.io/ndem), for our work on Real-time Neural Dense Elevation Mapping for Urban Terrain with Uncertainty Estimations
+
+- [KITTI dataset](https://www.cvlibs.net/datasets/kitti/) (Velodyne-64), teaser bag try [onedrive link: kitti_sequence11_half.bag](https://hkustconnect-my.sharepoint.com/:u:/g/personal/qzhangcb_connect_ust_hk/EXqmutFjAbpPsYVe5r91KXEBhLlqP7anlNBJqTMHIOkfqw?e=RoRVgF) only 876Mb
+- HKUST dataset (Ouster-128), check [our dataset webiste](https://ram-lab.com/file/site/multi-sensor-dataset/)
+
+
+## Running
+Test on following system: Ubuntu 20.04 noetic, 18.04 melodic, 16.04 kinetic
+
+Can run at any computer if using the docker (as my experience, but please try on real computer if you are running on the real robot)
+
+### Option: docker
+Provide the docker also:
 ```bash
+# pull or build select one
 docker pull zhangkin/ndt_mapping:refactor
-```
 
-或者docker build也行 注意把dockerfile 复制一下 然后build
-
-```bash
 docker build -t zhangkin/ndt_mapping:refactor .
 ```
 
-### run container
-
+Running inside:
 ```bash
 docker run -it --net=host --name ndt_slam zhangkin/ndt_mapping:refactor /bin/zsh
 cd src && git pull
 cd .. && catkin build -DCMAKE_BUILD_TYPE=Release
 roscore
 
-# 另开一个终端
+# open another terminal
 docker exec -it ndt_slam /bin/zsh
 source devel/setup.zsh
 roslaunch lidar_localizer ndt_mapping_docker.launch
 ```
 
-然后在自身系统正常播包即可，如下图所示
-
 ![](assets/readme/example_container.png)
 
-## 拉取 && 编译
+### Option: computer
 
-注意，如果使用的是docker内无需进行pull操作 直接编译即可
-
+Clone and running in your computer
 ```bash
-mkdir -p ~/workspace/mapping_ws
-cd ~/workspace/mapping_ws
+mkdir -p ~/workspace/mapping_ws/src
+cd ~/workspace/mapping_ws/src
+# please remember to --recurse-submodules !!!!
 git clone --recurse-submodules https://github.com/Kin-Zhang/simple_ndt_slam
-mv simple_ndt_slam src
 ```
 
-安装相关依赖（一些ROS包和glog）
-
+Install some dependences (glog, gflag)
 ```bash
-cd src
+cd simple_ndt_slam
 sudo chmod +x ./assets/scripts/setup_lib.sh
-./assets/scripts/setup_lib.sh
+sudo ./assets/scripts/setup_lib.sh
 ```
 
-最后编译 然后经过如下调整相关topic name，参数 和**bag包路径**设置即可直接运行
+Opne [lidar_localizer/config/ndt_mapping.yaml](lidar_localizer/config/ndt_mapping.yaml), modify the topic name based on your robot setting:
+```yaml
+lidar_topic: "/velodyne_points"
+```
 
+if you are running on the bag, remember to modify the **bag path** in the launch
+```html
+<arg name="bag_file" default="/home/kin/bags/kitti/semantickitti_sequence11.bag" />
+<node pkg="rosbag" type="play" name="bag_play" args="$(arg bag_file) --clock -r 0.8" required="false"/>
+```
+
+Build and run, please remember modify the config to point out correct topic name
 ```bash
 cd ~/workspace/mapping_ws
 catkin build -DCMAKE_BUILD_TYPE=Release
-source devel/setup.zsh
+source devel/setup.zsh # or source devel/setup.bash
 roslaunch lidar_localizer ndt_mapping.launch
 ```
 
-## 调参
+Running image with save map:
 
-1. 首先检查数据包有激光雷达信息，`sensor_msgs/PointCloud2` 格式
+```bash
+# open another terminal
+source devel/setup.zsh # or source devel/setup.bash
+rosservice call /save_map '/home/kin/bags/autoware/cones_people.pcd' 0.0
+rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter voxel
+```
 
-   ```bash
-   rosbag info xxx.bag
-   
-   # ======== 示例输出 ======= topics名字可在config内修改 无需提前规定
-   types:       sensor_msgs/PointCloud2 [xxx]
-   topics:      /velodyne_points     5359 msgs    : sensor_msgs/PointCloud2
-   ```
+![](assets/readme/save_map.png)
 
-   打开`src/packages/lidar_localizer/config/ndt_mapping.yaml` 配置文件，修改
 
-   ```yaml
-   lidar_topic: "/velodyne_points"
-   ```
-   
-2. 需要根据不同的建图场景进行调节，主要调节计入的最大最小距离等
+
+
+
+## Other info
+
+1. 需要根据不同的建图场景进行调节，主要调节计入的最大最小距离等
 
    ```yaml
    # Ignore points closer than this value (meters) (default 5.0)
@@ -108,35 +138,16 @@ roslaunch lidar_localizer ndt_mapping.launch
    min_add_scan_shift: 0.5
    ```
 
-3. 如果无需建图，可开启保存一定数量的点云进行运算，把旧时刻的清除
+2. 如果无需建图，可开启保存一定数量的点云进行运算，把旧时刻的清除
 
    ```yaml
    save_frame_point: 10
    ```
 
 
-在 Launch 中可以直接play bag，请修改路径即可
-
-```bash
-source ~/workspace/mapping_ws/devel/setup.zsh
-roslaunch lidar_localizer ndt_mapping.launch
-```
-
-如需要保存建图结果的pcd, 请暂停bag包（因为map资源会lock住），再开一个终端并运行：
-
-```bash
-rosservice call /save_map '/home/kin/ri_dog.pcd' 0.0
-rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter voxel
-```
-
-如图所示：
-
-![](assets/readme/save_map.png)
-
-
 ---
 
-**<u>博文及视频补充</u>**
+**<u>博文及视频补充</u>** Chinese only
 
 相关参数介绍均在博客中进行了详细介绍：
 
@@ -153,12 +164,14 @@ rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter v
 
 
 
-# 计划
+## TODO
 
-1. 参考开源包，后续加入回环（g2o/gtsam方式）
-2. 做一个建图的GUI以方便大家使用，提供安装包直接安装 无需源码编译版
+1. 参考开源包，后续加入回环（g2o/gtsam方式） -> But you can try directly to A-LOAM, LEGO-LOAM, LIO-SAM (+IMU) etcs
+2. 做一个建图的GUI以方便大家使用，提供安装包直接安装 无需源码编译版 -> don't except that too much
 
-# Acknowledgement
+## Acknowledgement
+
+- Autoware.ai core_perception: [core_perception](https://github.com/Autoware-AI/core_perception) 
 
 - Style Formate: [https://github.com/ethz-asl/linter](https://github.com/ethz-asl/linter)
 
@@ -169,7 +182,8 @@ rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter v
   
   init_linter_git_hooks --remove # remove
   ```
+✨✨Stargazers, positive feedback
 
-  
+---
 
-- Autoware.ai core_perception: [core_perception](https://github.com/Autoware-AI/core_perception) 
+[![Stargazers repo roster for @nastyox/Repo-Roster](https://reporoster.com/stars/Kin-Zhang/simple_ndt_slam)](https://github.com/Kin-Zhang/simple_ndt_slam/stargazers)

@@ -9,3 +9,5 @@
 
 
 <node pkg="tf" type="static_transform_publisher" name="bl2odom" args="0 0 0 0 0 0 base_link odom 10" />
+
+<param name="use_sim_time" value="true" />
