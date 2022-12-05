@@ -5,7 +5,6 @@
 
 #include "ground_segmentation/segment.h"
 #include "ground_segmentation/typedefs.h"
-#include "ground_segmentation/viewer.h"
 
 struct GroundSegmentationParams {
   GroundSegmentationParams() :
@@ -74,9 +73,6 @@ class GroundSegmentation {
   // 2D coordinates (d, z) of every point in its respective segment.
   std::vector<Bin::MinZPoint> segment_coordinates_;
 
-  // Visualizer.
-  std::unique_ptr<Viewer> viewer_;
-
   void assignCluster(std::vector<int>* segmentation);
 
   void assignClusterThread(const unsigned int& start_index,
@@ -101,13 +97,6 @@ class GroundSegmentation {
   void getMinZPointCloud(PointCloud* cloud);
 
   void resetSegments();
-
-  void visualizePointCloud(const PointCloud::ConstPtr& cloud,
-                           const std::string& id = "point_cloud");
-
-  void visualizeLines(const std::list<PointLine>& lines);
-
-  void visualize(const std::list<PointLine>& lines, const PointCloud::ConstPtr& cloud, const PointCloud::ConstPtr& ground_cloud, const PointCloud::ConstPtr& obstacle_cloud);
 
 public:
 
