@@ -1,3 +1,11 @@
+/**
+ * Copyright (C) 2022, IADC, Hong Kong University of Science and Technology
+ * MIT License
+ * Author: Kin ZHANG (https://kin-zhang.github.io/)
+ * Date: 2022-11-05
+ * Description: node file, please go to the ndt_mapper.cpp for more detail
+ */
+
 #include "ndt_mapper.h"
 #include <glog/logging.h>
 #include <ros/ros.h>
