@@ -56,13 +56,20 @@ struct GroundSegmentationParams {
   int n_threads;
 };
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
 
-typedef std::pair<pcl::PointXYZ, pcl::PointXYZ> PointLine;
+typedef std::pair<pcl::PointXYZI, pcl::PointXYZI> PointLine;
 
 class GroundSegmentation {
+public:
 
-  const GroundSegmentationParams params_;
+  GroundSegmentation();
+
+  void segment(const PointCloud& cloud, std::vector<int>* segmentation);
+  void setParam(const GroundSegmentationParams& params);
+  
+private:
+  GroundSegmentationParams params_;
 
   // Access with segments_[segment][bin].
   std::vector<Segment> segments_;
@@ -92,17 +99,12 @@ class GroundSegmentation {
   void lineFitThread(const unsigned int start_index, const unsigned int end_index,
                      std::list<PointLine> *lines, std::mutex* lines_mutex);
 
-  pcl::PointXYZ minZPointTo3d(const Bin::MinZPoint& min_z_point, const double& angle);
+  pcl::PointXYZI minZPointTo3d(const Bin::MinZPoint& min_z_point, const double& angle);
 
   void getMinZPointCloud(PointCloud* cloud);
 
   void resetSegments();
 
-public:
-
-  GroundSegmentation(const GroundSegmentationParams& params = GroundSegmentationParams());
-
-  void segment(const PointCloud& cloud, std::vector<int>* segmentation);
 
 };
 

@@ -30,7 +30,7 @@ public:
   /// \brief Fake copy constructor to allow vector<vector<Bin> > initialization.
   Bin(const Bin& segment);
 
-  void addPoint(const pcl::PointXYZ& point);
+  void addPoint(const pcl::PointXYZI& point);
 
   void addPoint(const double& d, const double& z);
 

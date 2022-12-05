@@ -30,5 +30,6 @@
   <depend>gflags</depend>
   <depend>eigen_conversions</depend>
   <depend>lidar_localizer_msg</depend>
-
+  <depend>linefit_ground_segmentation</depend>
+  
 </package>

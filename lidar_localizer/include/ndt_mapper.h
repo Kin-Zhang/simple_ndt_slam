@@ -34,6 +34,7 @@
 #include "lidar_localizer_msg/SaveMap.h"
 #include "ndt_cpu/NormalDistributionsTransform.h"
 #include "pcl_omp_registration/ndt.h"
+#include "ground_segmentation/ground_segmentation.h"
 
 namespace ndt_mapping {
 
@@ -242,6 +243,9 @@ private:
 
   // save lock resource
   std::mutex lockPointCloud;
+  
+  // ground
+  GroundSegmentation segmenter_;
 };
 
 } // namespace ndt_mapping

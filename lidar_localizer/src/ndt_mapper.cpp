@@ -9,8 +9,7 @@
 
 #include <omp.h>
 #include <pcl/filters/extract_indices.h>
-#include <pcl/segmentation/progressive_morphological_filter.h>
-#include <pcl/segmentation/approximate_progressive_morphological_filter.h>
+#include "ground_segmentation/ground_segmentation.h"
 // our define
 #include "ndt_mapper.h"
 #include "timer.h"
@@ -224,23 +223,33 @@ void NDTMapper::removeFloor(const typename pcl::PointCloud<PointT>::Ptr in_cloud
                            typename pcl::PointCloud<PointT>::Ptr out_nofloor_cloud_ptr,
                            typename pcl::PointCloud<PointT>::Ptr out_onlyfloor_cloud_ptr)
 {
+  std::vector<int> labels, ground;
+  segmenter_.segment(*in_cloud_ptr, &labels);
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+  LOG_IF(INFO, _debug_print) << "num of points in cloud  :" << in_cloud_ptr->size();
 
-  // Create the filtering object ref: https://pointclouds.org/documentation/tutorials/progressive_morphological_filtering.html
-  // help file: http://pointclouds.org/documentation/classpcl_1_1_progressive_morphological_filter.html 
-  pcl::ApproximateProgressiveMorphologicalFilter<PointT> pmf;
-  // pcl::ProgressiveMorphologicalFilter<PointT> pmf;
-  pmf.setExponential(false);
-  pmf.setNumberOfThreads(4);
-  pmf.setCellSize(config_.cell_size);
-  pmf.setBase(config_.base_b); // 2kb+1 or exponentially 
-  pmf.setMaxWindowSize(config_.max_window_size); // smaller is better
-  pmf.setSlope(config_.slope);
-  pmf.setInitialDistance(config_.initial_distance);
-  pmf.setMaxDistance(config_.max_distance);
+  for (size_t i = 0; i < labels.size(); ++i)
+    if (labels[i] == 1) ground.push_back(i);
+    
+  LOG_IF(INFO, _debug_print) << "gt points to be selected:" << ground.size();
+  inliers->indices = ground;
+  // pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 
-  pmf.setInputCloud(in_cloud_ptr);
-  pmf.extract(inliers->indices);
+  // // Create the filtering object ref: https://pointclouds.org/documentation/tutorials/progressive_morphological_filtering.html
+  // // help file: http://pointclouds.org/documentation/classpcl_1_1_progressive_morphological_filter.html 
+  // pcl::ApproximateProgressiveMorphologicalFilter<PointT> pmf;
+  // // pcl::ProgressiveMorphologicalFilter<PointT> pmf;
+  // pmf.setExponential(false);
+  // pmf.setNumberOfThreads(4);
+  // pmf.setCellSize(config_.cell_size);
+  // pmf.setBase(config_.base_b); // 2kb+1 or exponentially 
+  // pmf.setMaxWindowSize(config_.max_window_size); // smaller is better
+  // pmf.setSlope(config_.slope);
+  // pmf.setInitialDistance(config_.initial_distance);
+  // pmf.setMaxDistance(config_.max_distance);
+
+  // pmf.setInputCloud(in_cloud_ptr);
+  // pmf.extract(inliers->indices);
 
   // Check whether zero
   if (inliers->indices.size() == 0)
@@ -412,6 +421,20 @@ void NDTMapper::setConfig() {
   std::cout << "incremental_voxel_update: " << _incremental_voxel_update
             << std::endl;
   std::cout << "PARAM <====================================== " << std::endl;
+
+  GroundSegmentationParams params;
+  nh_private_.getParam("visualize", params.visualize);
+  nh_private_.getParam("n_bins", params.n_bins);
+  nh_private_.getParam("n_segments", params.n_segments);
+  nh_private_.getParam("max_dist_to_line", params.max_dist_to_line);
+  nh_private_.getParam("max_slope", params.max_slope);
+  nh_private_.getParam("long_threshold", params.long_threshold);
+  nh_private_.getParam("max_long_height", params.max_long_height);
+  nh_private_.getParam("max_start_height", params.max_start_height);
+  nh_private_.getParam("sensor_height", params.sensor_height);
+  nh_private_.getParam("line_search_angle", params.line_search_angle);
+  nh_private_.getParam("n_threads", params.n_threads);
+  segmenter_.setParam(params);
 
   if (_debug_print)
     google::SetStderrLogging(google::INFO);

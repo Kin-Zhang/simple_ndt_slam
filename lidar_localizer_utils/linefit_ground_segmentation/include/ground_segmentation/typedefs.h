@@ -4,6 +4,6 @@
 #include <pcl/point_types.h>
 
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
 
-typedef std::pair<pcl::PointXYZ, pcl::PointXYZ> PointLine;
+typedef std::pair<pcl::PointXYZI, pcl::PointXYZI> PointLine;

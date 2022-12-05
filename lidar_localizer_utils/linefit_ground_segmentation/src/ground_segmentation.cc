@@ -8,22 +8,13 @@
 
 using namespace std::chrono_literals;
 
+GroundSegmentation::GroundSegmentation(){}
 
-GroundSegmentation::GroundSegmentation(const GroundSegmentationParams& params) :
-    params_(params),
-    segments_(params.n_segments, Segment(params.n_bins,
-                                         params.min_slope,
-                                         params.max_slope,
-                                         params.max_error_square,
-                                         params.long_threshold,
-                                         params.max_long_height,
-                                         params.max_start_height,
-                                         params.sensor_height)) {
+void GroundSegmentation::setParam(const GroundSegmentationParams& params){
+  params_ = params;
 }
 
 void GroundSegmentation::segment(const PointCloud& cloud, std::vector<int>* segmentation) {
-  std::cout << "Segmenting cloud with " << cloud.size() << " points...\n";
-  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
   segmentation->clear();
   segmentation->resize(cloud.size(), 0);
   bin_index_.resize(cloud.size());
@@ -32,36 +23,8 @@ void GroundSegmentation::segment(const PointCloud& cloud, std::vector<int>* segm
 
   insertPoints(cloud);
   std::list<PointLine> lines;
-  if (params_.visualize) {
-    getLines(&lines);
-  }
-  else {
-    getLines(NULL);
-  }
+  getLines(NULL);
   assignCluster(segmentation);
-
-  size_t n_ground = 0;
-  for (const auto seg: *segmentation) {
-    n_ground += seg;
-  }
-
-  if (params_.visualize) {
-    // Visualize.
-    PointCloud::Ptr obstacle_cloud = boost::make_shared<PointCloud>();
-    obstacle_cloud->reserve(segmentation->size() - n_ground);
-    // Get cloud of ground points.
-    PointCloud::Ptr ground_cloud = boost::make_shared<PointCloud>();
-    ground_cloud->reserve(n_ground);
-    for (size_t i = 0; i < cloud.size(); ++i) {
-      if (segmentation->at(i) == 1) ground_cloud->push_back(cloud[i]);
-      else obstacle_cloud->push_back(cloud[i]);
-    }
-    PointCloud::Ptr min_cloud = boost::make_shared<PointCloud>();
-    getMinZPointCloud(min_cloud.get());
-  }
-  std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double, std::milli> fp_ms = end - start;
-  std::cout << "Done! Took " << fp_ms.count() << "ms\n";
 }
 
 void GroundSegmentation::getLines(std::list<PointLine> *lines) {
@@ -92,8 +55,8 @@ void GroundSegmentation::lineFitThread(const unsigned int start_index,
       std::list<Segment::Line> segment_lines;
       segments_[i].getLines(&segment_lines);
       for (auto line_iter = segment_lines.begin(); line_iter != segment_lines.end(); ++line_iter) {
-        const pcl::PointXYZ start = minZPointTo3d(line_iter->first, angle);
-        const pcl::PointXYZ end = minZPointTo3d(line_iter->second, angle);
+        const pcl::PointXYZI start = minZPointTo3d(line_iter->first, angle);
+        const pcl::PointXYZI end = minZPointTo3d(line_iter->second, angle);
         lines_mutex->lock();
         lines->emplace_back(start, end);
         lines_mutex->unlock();
@@ -110,7 +73,7 @@ void GroundSegmentation::getMinZPointCloud(PointCloud* cloud) {
   double angle = -M_PI + seg_step/2;
   for (auto seg_iter = segments_.begin(); seg_iter != segments_.end(); ++seg_iter) {
     for (auto bin_iter = seg_iter->begin(); bin_iter != seg_iter->end(); ++bin_iter) {
-      const pcl::PointXYZ min = minZPointTo3d(bin_iter->getMinZPoint(), angle);
+      const pcl::PointXYZI min = minZPointTo3d(bin_iter->getMinZPoint(), angle);
       cloud->push_back(min);
     }
 
@@ -129,9 +92,9 @@ void GroundSegmentation::resetSegments() {
                                                                params_.sensor_height));
 }
 
-pcl::PointXYZ GroundSegmentation::minZPointTo3d(const Bin::MinZPoint &min_z_point,
+pcl::PointXYZI GroundSegmentation::minZPointTo3d(const Bin::MinZPoint &min_z_point,
                                                 const double &angle) {
-  pcl::PointXYZ point;
+  pcl::PointXYZI point;
   point.x = cos(angle) * min_z_point.d;
   point.y = sin(angle) * min_z_point.d;
   point.z = min_z_point.z;
@@ -197,7 +160,7 @@ void GroundSegmentation::getMinZPoints(PointCloud* out_cloud) {
   for (auto seg_iter = segments_.begin(); seg_iter != segments_.end(); ++seg_iter) {
     double dist = r_min + bin_step/2;
     for (auto bin_iter = seg_iter->begin(); bin_iter != seg_iter->end(); ++bin_iter) {
-      pcl::PointXYZ point;
+      pcl::PointXYZI point;
       if (bin_iter->hasPoint()) {
         Bin::MinZPoint min_z_point(bin_iter->getMinZPoint());
         point.x = cos(angle) * min_z_point.d;
@@ -241,7 +204,7 @@ void GroundSegmentation::insertionThread(const PointCloud& cloud,
       / params_.n_bins;
   const double r_min = sqrt(params_.r_min_square);
   for (unsigned int i = start_index; i < end_index; ++i) {
-    pcl::PointXYZ point(cloud[i]);
+    pcl::PointXYZI point(cloud[i]);
     const double range_square = point.x * point.x + point.y * point.y;
     const double range = sqrt(range_square);
     if (range_square < params_.r_max_square && range_square > params_.r_min_square) {
