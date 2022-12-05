@@ -17,7 +17,7 @@ incremental_voxel_update: true
 
 # setting -1 mean it will output the whole ndt map ===> FOR THE WHOLE MAP
 # setting 10 mean 10*frame_point_num will be saved ===> FOR FAST LOC
-save_frame_point: -1
+save_frame_point: 10
 
 baselink2LiDAR: [0, 0, 0, 0, 0, 0] # x,y,z, roll, pitch, yaw
 
@@ -45,3 +45,19 @@ max_scan_range: 20.0
 
 # Minimum distance between points to be added to the final map (default 1.0)
 min_add_scan_shift: 0.2
+
+# parameter's for segmentation on ground pt =========================== >
+process_ground_cloud: true
+pub_ground_cloud: true
+
+# when window < 3, elevation height initial dis
+initial_distance: 0.1
+# when elevation > max distance, threshold to max_distance, if it's stair this param may need some changes
+max_distance: 2.5
+
+# threshold for window 2kb+1
+max_window_size: 8
+# voxel size smaller is better but the
+cell_size: 1
+# based on the scenarios slope degree ==> TODO through height and window size as paper said
+slope: 0.1

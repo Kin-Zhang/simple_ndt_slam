@@ -126,6 +126,7 @@ public:
     float initial_distance = 0.5;
     float max_distance = 2.0;
     float cell_size = 0.5; // inside function default is 1
+    float base_b = 1.0; // inside function default is 2.0
   };
 
   NDTMapper(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private);

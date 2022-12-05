@@ -9,6 +9,7 @@
 
 #include <omp.h>
 #include <pcl/filters/extract_indices.h>
+#include <pcl/segmentation/progressive_morphological_filter.h>
 #include <pcl/segmentation/approximate_progressive_morphological_filter.h>
 // our define
 #include "ndt_mapper.h"
@@ -226,15 +227,19 @@ void NDTMapper::removeFloor(const typename pcl::PointCloud<PointT>::Ptr in_cloud
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 
   // Create the filtering object ref: https://pointclouds.org/documentation/tutorials/progressive_morphological_filtering.html
+  // help file: http://pointclouds.org/documentation/classpcl_1_1_progressive_morphological_filter.html 
   pcl::ApproximateProgressiveMorphologicalFilter<PointT> pmf;
+  // pcl::ProgressiveMorphologicalFilter<PointT> pmf;
   pmf.setExponential(false);
   pmf.setNumberOfThreads(4);
   pmf.setCellSize(config_.cell_size);
-  pmf.setInputCloud(in_cloud_ptr);
+  pmf.setBase(config_.base_b); // 2kb+1 or exponentially 
   pmf.setMaxWindowSize(config_.max_window_size); // smaller is better
   pmf.setSlope(config_.slope);
   pmf.setInitialDistance(config_.initial_distance);
   pmf.setMaxDistance(config_.max_distance);
+
+  pmf.setInputCloud(in_cloud_ptr);
   pmf.extract(inliers->indices);
 
   // Check whether zero
@@ -394,6 +399,7 @@ void NDTMapper::setConfig() {
   nh_private_.getParam("initial_distance", config_.initial_distance);
   nh_private_.getParam("max_distance", config_.max_distance);
   nh_private_.getParam("cell_size", config_.cell_size);
+  nh_private_.getParam("base_b", config_.base_b);
 
   std::cout << "======================================> PARAM" << std::endl;
   std::cout << "lidar_topic: " << _lidar_topic << std::endl;
