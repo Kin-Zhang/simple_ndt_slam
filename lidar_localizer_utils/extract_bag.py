@@ -17,8 +17,8 @@ import roslaunch
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--bag-path', default='/home/kin/bags/autoware/res_odom_lidar.bag')
-parser.add_argument('--save-dir', default='/home/kin/bags/autoware/res_odom_lidar')
+parser.add_argument('--bag-path', default='/home/kin/bags/autoware/res_three_people_back_xuzhou.bag')
+parser.add_argument('--save-dir', default='/home/kin/bags/autoware/three_people_back_xuzhou')
 parser.add_argument('--odom',  default='/auto_odom')
 parser.add_argument('--lidar', default='/odom_lidar')
 args = parser.parse_args()

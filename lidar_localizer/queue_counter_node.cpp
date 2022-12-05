@@ -34,31 +34,33 @@
 #include <glog/logging.h>
 #include <ros/ros.h>
 
-static int enqueue = 0;
-static int dequeue = 0;
+static int enqueue = 0, dequeue = 0;
 static bool _debug_print = true;
 static std::string _lidar_topic = "points_raw";
 static ros::Publisher ndt_map_pub;
 static ros::Time current_scan_time;
 
-static void points_callback(const sensor_msgs::PointCloud2::ConstPtr &input) {
+void points_callback(const sensor_msgs::PointCloud2::ConstPtr &input) {
   enqueue++;
 }
 
-static void ndt_pose_callback(const geometry_msgs::PoseStamped &msg) {
+void ndt_pose_callback(const geometry_msgs::PoseStamped &msg) {
   dequeue++;
-  if (_debug_print)
-    LOG(INFO) << "(Processed/Input): (" << dequeue << " / " << enqueue << ")"
+  LOG_IF(INFO, _debug_print) << "(Processed/Input): (" << dequeue << " / " << enqueue << ")"
               << std::endl;
 }
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "queue_counter");
 
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("");
   ros::NodeHandle private_nh("~");
   private_nh.getParam("lidar_topic", _lidar_topic);
   private_nh.getParam("debug_print", _debug_print);
+
+  LOG(INFO) << "PARAM setting";
+  LOG(INFO) << "lidar_topic: " << _lidar_topic;
+  LOG(INFO) << "debug print: " << _debug_print;
 
   ros::Subscriber points_sub = nh.subscribe(_lidar_topic, 10, points_callback);
   ros::Subscriber ndt_map_sub =
