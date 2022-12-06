@@ -233,23 +233,6 @@ void NDTMapper::removeFloor(const typename pcl::PointCloud<PointT>::Ptr in_cloud
     
   LOG_IF(INFO, _debug_print) << "gt points to be selected:" << ground.size();
   inliers->indices = ground;
-  // pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-
-  // // Create the filtering object ref: https://pointclouds.org/documentation/tutorials/progressive_morphological_filtering.html
-  // // help file: http://pointclouds.org/documentation/classpcl_1_1_progressive_morphological_filter.html 
-  // pcl::ApproximateProgressiveMorphologicalFilter<PointT> pmf;
-  // // pcl::ProgressiveMorphologicalFilter<PointT> pmf;
-  // pmf.setExponential(false);
-  // pmf.setNumberOfThreads(4);
-  // pmf.setCellSize(config_.cell_size);
-  // pmf.setBase(config_.base_b); // 2kb+1 or exponentially 
-  // pmf.setMaxWindowSize(config_.max_window_size); // smaller is better
-  // pmf.setSlope(config_.slope);
-  // pmf.setInitialDistance(config_.initial_distance);
-  // pmf.setMaxDistance(config_.max_distance);
-
-  // pmf.setInputCloud(in_cloud_ptr);
-  // pmf.extract(inliers->indices);
 
   // Check whether zero
   if (inliers->indices.size() == 0)

@@ -49,8 +49,10 @@ min_add_scan_shift: 0.2
 # parameter's for segmentation on ground pt =========================== >
 process_ground_cloud: true
 pub_ground_cloud: true
-n_threads: 4                # number of threads to use.
+n_threads: 12                # number of threads to use.
 
+# check paper to view step: https://ieeexplore.ieee.org/document/5548059
+# or chinese blog: https://blog.csdn.net/lovelyaiq/article/details/118826534
 r_min: 0.5                  # minimum point distance.
 r_max: 50                   # maximum point distance.
 n_bins: 120                 # number of radial bins.
@@ -60,7 +62,7 @@ max_dist_to_line: 0.05      # maximum vertical distance of point to line to be c
 
 sensor_height: 0.4          # sensor height above ground.
 min_slope: 0.0              # minimum slope of a ground line.
-max_slope: 0.05              # maximum slope of a ground line.
+max_slope: 0.08              # maximum slope of a ground line.
 max_fit_error: 0.05         # maximum error of a point during line fit.
 long_threshold: 0.5         # distance between points after which they are considered far from each other.
 max_long_height: 0.1        # maximum height change to previous point in long line.

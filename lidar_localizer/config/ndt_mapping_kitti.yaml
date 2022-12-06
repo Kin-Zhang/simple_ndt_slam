@@ -52,22 +52,35 @@ min_add_scan_shift: 1.0
 process_ground_cloud: true
 pub_ground_cloud: true
 
+# check paper to view step: https://ieeexplore.ieee.org/document/5548059
+# or chinese blog: https://blog.csdn.net/lovelyaiq/article/details/118826534
 n_threads: 8                # number of threads to use.
 
+# 感兴趣的区域
 r_min: 0.5                  # minimum point distance.
 r_max: 50                   # maximum point distance.
-n_bins: 120                 # number of radial bins.
+# 整个雷点点云以自己为中心 分为多少个segment，每个segment又分成多少个bin
 n_segments: 360             # number of radial segments.
+n_bins: 120                 # number of radial bins.
+# 雷达传感器高度，主要是+offset
+sensor_height: 1.8          # sensor height above ground.
+# 直线的slope 斜率，比如一个seg里拟合的线斜率 认为是地面的范围
+min_slope: 0.0              # minimum slope of a ground line.
+max_slope: 0.3              # maximum slope of a ground line. # 对应T_m
+max_fit_error: 0.05         # maximum error of a point during line fit. # 对应 T_RMSE
 
+# 多少vertical distance被算成是ground进入拟和直线
+# 同样也是最终判断是否是地面点的决定性参数！
 max_dist_to_line: 0.05      # maximum vertical distance of point to line to be considered ground.
 
-sensor_height: 1.8          # sensor height above ground.
-min_slope: 0.0              # minimum slope of a ground line.
-max_slope: 0.3              # maximum slope of a ground line.
-max_fit_error: 0.05         # maximum error of a point during line fit.
+# 现在点与要拟合直线的最远点距离是否超过这个值 是的话 long line
+# 反之，走 max_start_height 去判断是否进入直线vector
 long_threshold: 1.0         # distance between points after which they are considered far from each other.
-max_long_height: 0.1        # maximum height change to previous point in long line.
+# 将点z-地面z < max_start_height则计入算直线的vector中
 max_start_height: 0.2       # maximum difference to estimated ground height to start a new line.
+# 最大的高度变化 否则不认为在一条直线上
+max_long_height: 0.1        # maximum height change to previous point in long line.
+# seg内角度范围，范围外不进行任何处理
 line_search_angle: 0.1      # how far to search in angular direction to find a line [rad].
 
 gravity_aligned_frame: ""   # Frame which has its z axis aligned with gravity. (Sensor frame if empty.)
