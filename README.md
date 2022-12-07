@@ -1,15 +1,15 @@
-# Simple-ndt-Slam
+# simple-ndt
 
 This package is extracted from [autoware.ai](https://github.com/Autoware-AI) 1.14.0 version, but with debug fixed, re-factor and speed up.
 
 - fix the empty tf problem, [check the related pull request](https://github.com/autowarefoundation/autoware_ai_perception/pull/60)
 - speed up the whole package, more efficient than previous one, could run 10hz stably in 4-core CPU 
 
-Package Usage, using one LiDAR to do SLAM, no IMU no camera needed, of course sometime the result may not good enough, These Ubuntu 16.04-20.04 system with ROS can all run this package:
+Package Usage, using one LiDAR to do SLAM, <u>no IMU no camera needed</u>, of course sometime the result may not good enough, These Ubuntu 16.04-20.04 system with ROS can all run this package:
 
 - Localization
 - Mapping
-- [ing] Dynamics points remove, with [LimHyungTae/ERASOR](https://github.com/LimHyungTae/ERASOR), and Kin's fork for directly on this package also: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam)
+- Dynamics points remove, Kin's fork for directly on this package also: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam) from [LimHyungTae/ERASOR](https://github.com/LimHyungTae/ERASOR)
 
 <details>
   <summary>Effects shown here [**remember modify the topic name on config**]</summary>
@@ -26,8 +26,6 @@ Package Usage, using one LiDAR to do SLAM, no IMU no camera needed, of course so
 
 </details>
 
-<br>
-
 
 CHANGE LOG:
 
@@ -43,6 +41,7 @@ Real robots/dataset I tried:
 
 - [KITTI dataset](https://www.cvlibs.net/datasets/kitti/) (Velodyne-64), teaser bag try [onedrive link: kitti_sequence11_half.bag](https://hkustconnect-my.sharepoint.com/:u:/g/personal/qzhangcb_connect_ust_hk/EXqmutFjAbpPsYVe5r91KXEBhLlqP7anlNBJqTMHIOkfqw?e=RoRVgF) only 876Mb
 - HKUST dataset (Ouster-128), check [our dataset webiste](https://ram-lab.com/file/site/multi-sensor-dataset/)
+- RS-LiDAR-M1 (special LiDAR but have points cloud is enough for simple_ndt)
 
 
 ## Running
@@ -50,7 +49,9 @@ Test on following system: Ubuntu 20.04 noetic, 18.04 melodic, 16.04 kinetic
 
 Can run at any computer if using the docker (as my experience, but please try on real computer if you are running on the real robot)
 
-### Option: docker
+<details>
+  <summary>Option: docker</summary>
+
 Provide the docker also:
 ```bash
 # pull or build select one
@@ -73,8 +74,8 @@ roslaunch lidar_localizer ndt_mapping_docker.launch
 ```
 
 ![](assets/readme/example_container.png)
-
-### Option: computer
+</details>
+### own env computer
 
 Clone and running in your computer
 ```bash
@@ -110,7 +111,7 @@ source devel/setup.zsh # or source devel/setup.bash
 roslaunch lidar_localizer ndt_mapping.launch
 ```
 
-Running image with save map:
+Running image with save map, 0-1 means filter rate, 0 means save all points, normally we will save 0.02-0.1 based how many points in the map
 
 ```bash
 # open another terminal
