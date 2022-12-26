@@ -49,22 +49,23 @@ Test on following system: Ubuntu 20.04 noetic, 18.04 melodic, 16.04 kinetic
 
 Can run at any computer if using the docker (as my experience, but please try on real computer if you are running on the real robot)
 
+### Option A: docker
 <details>
-  <summary>Option: docker</summary>
+  <summary>expand to see the docker usage</summary>
 
 Provide the docker also:
 ```bash
 # pull or build select one
-docker pull zhangkin/ndt_mapping:refactor
+docker pull zhangkin/simple_ndt
 
-docker build -t zhangkin/ndt_mapping:refactor .
+docker build -t zhangkin/simple_ndt .
 ```
 
 Running inside:
 ```bash
-docker run -it --net=host --name ndt_slam zhangkin/ndt_mapping:refactor /bin/zsh
-cd src && git pull
-cd .. && catkin build -DCMAKE_BUILD_TYPE=Release
+docker run -it --net=host --name ndt_slam zhangkin/simple_ndt /bin/zsh
+cd src && git pull && cd ..
+catkin build -DCMAKE_BUILD_TYPE=Release
 roscore
 
 # open another terminal
@@ -75,7 +76,8 @@ roslaunch lidar_localizer ndt_mapping_docker.launch
 
 ![](assets/readme/example_container.png)
 </details>
-### own env computer
+
+### Option B: own env computer
 
 Clone and running in your computer
 ```bash
@@ -122,11 +124,7 @@ rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter v
 
 ![](assets/readme/save_map.png)
 
-
-
-
-
-## Other info
+### Parameters
 
 1. 需要根据不同的建图场景进行调节，主要调节计入的最大最小距离等
 
@@ -145,8 +143,59 @@ rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter v
    save_frame_point: 10
    ```
 
+## Optional: Post-processing
 
----
+This part are **<u>optional</u>**!! Depends on your interest. You can also ignore these part and only use simple-ndt. Here are multiples.
+
+Following steps are the post-processing to **make odom more accurate (loop-closure)** and to **make global map better (remove dynamic, ghost points)**
+
+### A: Loop Closure
+
+TODO Function: post-processing Loop closure after saving the poses and pcd
+
+### B: Remove dynamics points in the map
+
+Kin's fork for directly on this package also: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam) from [LimHyungTae/ERASOR](https://github.com/LimHyungTae/ERASOR)
+
+1. First you need launch with rosbag record in launch files:
+
+   ```xml
+     <arg name="record_bag" default="/home/kin/bags/autoware/res_odom_lidar.bag" />
+     <node pkg="rosbag" type="record" name="bag_record" args="--output-name $(arg record_bag) /auto_odom /odom_lidar /tf" />
+   ```
+   Save the global map
+   ```xml
+   rosservice call /save_map '/home/kin/bags/autoware/all_topics/cones_people.pcd' 0.0
+   ```
+
+2. Then use the python scripts to extract the dataset, sorry I didn't with C++ :)
+
+   ```bash
+   python3 lidar_localizer_utils/extract_bag.py --bag-path "/home/kin/bags/autoware/res_odom_lidar.bag" --save-dir "/home/kin/bags/autoware/results/res_odom_lidar"
+   ```
+
+3. config files modifed which is in [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam). Modifed all the dir path correct
+
+   ```yaml
+   # these three path is needed be changed
+   initial_map_path: "/home/kin/bags/autoware/results/cones_people.pcd" # global map save path
+   save_path: "/home/kin/bags/autoware/results" # save removed done pcd path
+   data_dir: "/home/kin/bags/autoware/results/res_odom_lidar" # same dir with --save-dir
+   ```
+
+
+4. RUN IT! Please check there: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam)
+
+Run pcl_viewer to see the effect:
+
+```bash
+sudo apt-get install pcl-tools
+pcl_viewer -multiview 1 bongeunsa_result.pcd origin_map.pcd
+```
+
+![](assets/readme/ERASOR_effect.png)
+
+## Other Infos
 
 **<u>博文及视频补充</u>** Chinese only
 
@@ -165,12 +214,12 @@ rosservice call /save_map '/home/kin/ri_dog.pcd' 0.2 # save around 20cm filter v
 
 
 
-## TODO
+### TODO
 
 1. 参考开源包，后续加入回环（g2o/gtsam方式） -> But you can try directly to A-LOAM, LEGO-LOAM, LIO-SAM (+IMU) etcs
 2. 做一个建图的GUI以方便大家使用，提供安装包直接安装 无需源码编译版 -> don't except that too much
 
-## Acknowledgement
+### Acknowledgement
 
 - Autoware.ai core_perception: [core_perception](https://github.com/Autoware-AI/core_perception) 
 

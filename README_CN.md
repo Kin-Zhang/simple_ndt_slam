@@ -24,21 +24,22 @@ English version on readme, please check on personal website: [projects/simple_nd
 推荐使用 这样就不用担心自己的环境了
 
 ```bash
-docker pull zhangkin/ndt_mapping:refactor
+docker pull zhangkin/simple_ndt
+
 ```
 
 或者docker build也行 注意把dockerfile 复制一下 然后build
 
 ```bash
-docker build -t zhangkin/ndt_mapping:refactor .
+docker build -t zhangkin/simple_ndt .
 ```
 
 ### run container
 
 ```bash
-docker run -it --net=host --name ndt_slam zhangkin/ndt_mapping:refactor /bin/zsh
-cd src && git pull
-cd .. && catkin build -DCMAKE_BUILD_TYPE=Release
+docker run -it --net=host --name ndt_slam zhangkin/simple_ndt /bin/zsh
+cd src && git pull && cd ..
+catkin build -DCMAKE_BUILD_TYPE=Release
 roscore
 
 # 另开一个终端
