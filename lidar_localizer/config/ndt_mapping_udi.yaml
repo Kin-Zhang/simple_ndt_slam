@@ -1,0 +1,74 @@
+lidar_frame: "rslidar"
+lidar_topic: "/top/rslidar_points"
+
+# output things ================ >
+odom_lidar_topic: "/odom_lidar" # sensor_msgs::PointCloud2
+output_odom_topic: "/auto_odom" # nav_msgs::Odometry
+
+# will republish point with now timestamp
+debug_print: true
+use_odom: false
+use_imu: false
+
+# whether inverse the imu axis
+imu_upside_down: false
+odom_inverse: true
+incremental_voxel_update: true
+
+# setting -1 mean it will output the whole ndt map ===> FOR THE WHOLE MAP
+# setting 10 mean 10*frame_point_num will be saved ===> FOR FAST LOC
+save_frame_point: 10
+
+baselink2LiDAR: [0, 0, 0, 0, 0, 0] # x,y,z, roll, pitch, yaw
+
+# parameter's for ndt =========================== >
+# Cell Size while mapping using ND (meters) (default 1.0)
+resolution: 0.5
+
+# Increment value between iterations while matching (default 0.1)
+step_size: 0.05
+
+# Value to decide convergence between iterations (meters) (default 0.01)
+trans_epsilon: 0.01
+
+# Maximum number of iterations before stopping matching (default 30)
+max_iterations: 30
+
+# Voxel Grid Size of the input scan (downsampling) (default 1.0)
+leaf_size: 0.5
+
+# Ignore points closer than this value (meters) (default 5.0)
+min_scan_range: 2.0
+
+# Ignore points far than this value (meters) (default 200.0)
+max_scan_range: 20.0
+
+# Minimum distance between points to be added to the final map (default 1.0)
+min_add_scan_shift: 0.2
+
+# parameter's for segmentation on ground pt =========================== >
+process_ground_cloud: false
+pub_ground_cloud: false
+n_threads: 12                # number of threads to use.
+
+# check paper to view step: https://ieeexplore.ieee.org/document/5548059
+# or chinese blog: https://blog.csdn.net/lovelyaiq/article/details/118826534
+r_min: 0.5                  # minimum point distance.
+r_max: 50                   # maximum point distance.
+n_bins: 120                 # number of radial bins.
+n_segments: 360             # number of radial segments.
+
+max_dist_to_line: 0.05      # maximum vertical distance of point to line to be considered ground.
+
+sensor_height: 0.4          # sensor height above ground.
+min_slope: 0.0              # minimum slope of a ground line.
+max_slope: 0.08              # maximum slope of a ground line.
+max_fit_error: 0.05         # maximum error of a point during line fit.
+long_threshold: 0.5         # distance between points after which they are considered far from each other.
+max_long_height: 0.1        # maximum height change to previous point in long line.
+max_start_height: 0.2       # maximum difference to estimated ground height to start a new line.
+line_search_angle: 0.33      # how far to search in angular direction to find a line [rad].
+
+gravity_aligned_frame: ""   # Frame which has its z axis aligned with gravity. (Sensor frame if empty.)
+
+latch: false                # latch output topics or not
