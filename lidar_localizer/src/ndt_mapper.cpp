@@ -433,7 +433,7 @@ bool NDTMapper::saveMap(lidar_localizer_msg::SaveMap::Request &req,
   // Writing Point Cloud data to PCD file
   auto map_ptr = map.makeShared();
   if (save_map_filter_res == 0.0) {
-    pcl::io::savePCDFileASCII(save_map_path, map);
+    pcl::io::savePCDFileBinary(save_map_path, map);
     std::cout << "Saved " << map.points.size() << " data points to "
               << save_map_path << "." << std::endl;
   } else {
@@ -444,7 +444,7 @@ bool NDTMapper::saveMap(lidar_localizer_msg::SaveMap::Request &req,
                                   save_map_filter_res);
     voxel_grid_filter.setInputCloud(map_ptr);
     voxel_grid_filter.filter(*map_filtered);
-    pcl::io::savePCDFileASCII(save_map_path, *map_filtered);
+    pcl::io::savePCDFileBinary(save_map_path, *map_filtered);
     std::cout << "Original: " << map.points.size() << " points." << std::endl;
     std::cout << "Filtered: " << map_filtered->points.size() << " points."
               << std::endl;
