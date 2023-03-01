@@ -33,7 +33,6 @@
 
 #include "lidar_localizer_msg/SaveMap.h"
 #include "ndt_cpu/NormalDistributionsTransform.h"
-#include "pcl_omp_registration/ndt.h"
 
 namespace ndt_mapping {
 
