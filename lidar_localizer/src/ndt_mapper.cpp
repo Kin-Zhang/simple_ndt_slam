@@ -263,6 +263,7 @@ void NDTMapper::getTF() {
                                  ros::Duration(1.0));
     tf_listener.lookupTransform("base_link", lidar_frame, ros::Time(),
                                 tf_baselink2primarylidar);
+    received_tf = true;
   } catch (tf::TransformException &ex) {
     ROS_WARN(
         "Query base_link to primary lidar frame through TF tree failed: %s",
@@ -273,6 +274,7 @@ void NDTMapper::getTF() {
 
   // 2. Try getting from config files
   if (!received_tf) {
+    LOG(INFO) << "Getting base link 2 LiDAR tf from config file!!!";
     if (!nh_private_.getParam("baselink2LiDAR", b2l_tf))
       ROS_ERROR(
           "Failed to get parameter from server. Please CHECK THE CONFIG FILE");
@@ -297,6 +299,10 @@ void NDTMapper::getTF() {
     tf_y = tf_baselink2primarylidar.getOrigin().getY();
     tf_z = tf_baselink2primarylidar.getOrigin().getZ();
     Eigen::Translation3f tl_btol(tf_x, tf_y, tf_z); // tl: translation
+
+    LOG(INFO) << "LOAD TF success, baselink to LiDAR: [x,y,z,roll,pitch,yaw]: "
+              << tf_x << " , "<< tf_y << " , "<< tf_z << " , "<< tf_roll << " , "<< tf_pitch
+              << " , " << tf_yaw;
 
     tf::Matrix3x3(tf_baselink2primarylidar.getRotation())
         .getRPY(tf_roll, tf_pitch, tf_yaw);
