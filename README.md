@@ -171,7 +171,7 @@ Kin's fork for directly on this package also: [Kin-Zhang/ERASOR](https://github.
 2. Then use the python scripts to extract the dataset, sorry I didn't with C++ :)
 
    ```bash
-   python3 util_tools/extract_bag.py --bag-path "/home/kin/bags/autoware/res_odom_lidar.bag" --save-dir "/home/kin/bags/autoware/results/res_odom_lidar"
+   python3 tools/scripts/extract_bag.py --bag-path "/home/kin/bags/autoware/res_odom_lidar.bag" --save-dir "/home/kin/bags/autoware/results/res_odom_lidar"
    ```
 
 3. config files modifed which is in [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam). Modifed all the dir path correct

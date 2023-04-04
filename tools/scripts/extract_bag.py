@@ -3,7 +3,8 @@
  * MIT License
  * Author: Kin ZHANG (https://kin-zhang.github.io/)
  * Date: 2022-12-02
- * Description: Extract the result bag for erasor package to settle down, check how to erasor the dynamics points in the map: https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam
+ * Description: Extract the result bag for erasor package to settle down, 
+ check how to erasor the dynamics points in the map: https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam
 '''
 
 
