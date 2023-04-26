@@ -10,19 +10,40 @@ mkdir build && cd build
 cmake .. && make
 ```
 
-## extract_pcdTbag.cpp
+## extract_pcdFbag_*.cpp
 Goal: extract the bag which contains point cloud data and pose to pcd files, will transform the point cloud to the world frame based on the pose. And add pose to the pcd VIEWPOINT field.
 
-We assume that the odom and pose is already sync and have same time stamp, if you don't know how to do that please check simple_ndt_slam code `pubOtherMsgs` this function.
+We assume that the odom and pose is already sync and have same time stamp, if you don't know how to do that please check simple_ndt_slam code `pubOtherMsgs` this function. If you are using other slam package and want to use this script, you need to sync the odom and pose by yourself or tf need be tf2, [check why tf2 instead of tf here](../assets/readme/WHY-TF2.md)
 
+- `_tf`: directly read pose msg from tf2
+- `_topic`: need sync pose and then specify the odom topic name.
+
+### Usage
 ```bash
-./bag_extract_pcd /home/kin/bags/rosbag_folder/kitti/res_odom_lidar.bag /home/kin/Test_pcd
+./bag2pcd_tf /home/kin/bags/kobuki/res_0425vlp2livox.bag /home/kin/Tmp
 ```
 
 If you want to the raw point map, you can use the following command, set 1 as the last parameter.
 
 ```bash
-./bag_extract_pcd /home/kin/bags/rosbag_folder/kitti/res_odom_lidar.bag /home/kin/Test_pcd 1
+./bag2pcd_tf /home/kin/bags/kobuki/res_0425vlp2livox.bag /home/kin/Tmp 1
+```
+
+And here is the folder tree:
+```
+➜  Tmp tree -L 2
+.
+├── pcd
+│   ├── 000000.pcd
+│   ├── 000001.pcd
+│   ├── 000002.pcd
+│   ├── 000003.pcd
+│   ├── ...
+│   ├── 000667.pcd
+│   ├── 000668.pcd
+│   └── 000669.pcd
+└── raw_map.pcd
+
 ```
 
 Want to know how to use this produced pcd? Check [DUFOMap](TODO)!

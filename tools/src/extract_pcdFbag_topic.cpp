@@ -45,8 +45,8 @@ int main(int argc, char** argv) {
   std::string rosbag_path = argv[1];
   std::string save_pcd_folder = argv[2];
   int save_map_pcd = 0;
-  if (argc > 4){
-    save_map_pcd = argv[3];
+  if (argc > 3){
+    save_map_pcd = std::stoi(argv[3]);
     if(save_map_pcd == 1){
       LOG(INFO) << "We will save map pcd file";
     }
@@ -61,14 +61,18 @@ int main(int argc, char** argv) {
     std::filesystem::create_directory(save_pcd_folder);
     LOG(INFO) << "Create folder: " << save_pcd_folder;
   }
+  if(!std::filesystem::exists(save_pcd_folder+"/pcd"))
+    std::filesystem::create_directory(save_pcd_folder+"/pcd");
 
   LOG(INFO) << "we will read bag through: " << rosbag_path;
   rosbag::Bag bag;
   bag.open(rosbag_path, rosbag::bagmode::Read);
 
-  
+  // define a tf matrix
+  Eigen:: Matrix4f base2sensor = Eigen::Matrix4f::Identity();
+
   std::string odom_topic = "/auto_odom";
-  std::string pc2_topic = "/odom_lidar";
+  std::string pc2_topic = "/rslidar_points";
   std::vector<std::string> topics = {odom_topic, pc2_topic};
   LOG(INFO) << "We will read odom topic: " << ANSI_BOLD<< odom_topic  << ANSI_RESET 
             << " and pc2 topic: " << ANSI_BOLD << pc2_topic << ANSI_RESET;
@@ -89,6 +93,7 @@ int main(int argc, char** argv) {
       Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
       transform.block<3, 3>(0, 0) = Eigen::Quaternionf(pose[6], pose[3], pose[4], pose[5]).toRotationMatrix();
       transform.block<3, 1>(0, 3) = Eigen::Vector3f(pose[0], pose[1], pose[2]);
+      transform = base2sensor * transform;
       pcl::transformPointCloud(*pcl_cloud, *pcl_cloud, transform);
       
       if(save_map_pcd == 1)
@@ -100,7 +105,7 @@ int main(int argc, char** argv) {
 
       // save the pcd
       std::ostringstream tmp_filename;
-      tmp_filename << save_pcd_folder << "/" << std::setfill('0') << std::setw(6) << count << ".pcd";
+      tmp_filename << save_pcd_folder << "/pcd/" << std::setfill('0') << std::setw(6) << count << ".pcd";
       std::string pcd_file = tmp_filename.str();
       pcl::io::savePCDFileBinary(pcd_file, *pcl_cloud);
 

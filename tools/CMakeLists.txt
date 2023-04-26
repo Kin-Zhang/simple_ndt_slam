@@ -26,15 +26,17 @@ endfunction()
 
 
 # Find the required packages
-find_package(catkin COMPONENTS roscpp sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs tf2 tf2_ros tf2_eigen)
 find_package(rosbag QUIET)
 
 # Add the executable and link the libraries for read_bag_example only if rosbag is found
 if(rosbag_FOUND)
 	# Include the directories
 	include_directories(${catkin_INCLUDE_DIRS})
-	add_executable(bag_extract_pcd src/extract_pcdFbag.cpp)
-	target_link_libraries(bag_extract_pcd ${catkin_LIBRARIES} ${rosbag_LIBRARIES} ${PCL_LIBRARIES} ${LOG_LIB})
+	add_executable(bag2pcd src/extract_pcdFbag_topic.cpp)
+	target_link_libraries(bag2pcd ${catkin_LIBRARIES} ${rosbag_LIBRARIES} ${PCL_LIBRARIES} ${LOG_LIB})
+	add_executable(bag2pcd_tf src/extract_pcdFbag_tf.cpp)
+	target_link_libraries(bag2pcd_tf ${catkin_LIBRARIES} ${rosbag_LIBRARIES} ${PCL_LIBRARIES} ${LOG_LIB})
 else()
 	message(WARNING "rosbag package not found. Skipping read_bag_example.")
 endif()
