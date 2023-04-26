@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
   std::string pc2_topic = argv[3];
 
   int save_map_pcd = 0;
-  if (argc > 5) {
+  if (argc > 4) {
     save_map_pcd = std::stoi(argv[4]);
     if (save_map_pcd == 1) {
       LOG(INFO) << "We will save map pcd file";
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
   std::vector<std::string> topics = {pc2_topic, "/tf", "/tf_static"};
   LOG(INFO) << "We will read pc2 topic: " << ANSI_BOLD << pc2_topic
-            << ANSI_RESET << " and odom from tf topic directly";
+            << ANSI_RESET << " and pose info from tf topic directly";
 
   TIC;
   // Create a view for the bag with the desired topic
@@ -96,6 +96,7 @@ int main(int argc, char** argv) {
   tf2_ros::Buffer tf_buffer(cache_length);
   tf2_ros::TransformListener tf_listener(tf_buffer);
   geometry_msgs::TransformStamped static_transform;
+  bool static_frame_set = false;
   for (const rosbag::MessageInstance& m : view) {
     if (m.isType<tf2_msgs::TFMessage>()) {
       tf2_msgs::TFMessage::ConstPtr tf_msg =
@@ -107,10 +108,11 @@ int main(int argc, char** argv) {
             // FIXME: set velodyne frame and livox frame HARD CODE! HERE
             if(transform.child_frame_id == "livox_frame"){
               static_transform = transform;
+              static_frame_set = true;
               continue;
             }
 
-            if(transform.header.frame_id == "map"){
+            if(transform.header.frame_id == "map" && static_frame_set){
               static_transform.header.stamp = transform.header.stamp;
               tf_buffer.setTransform(static_transform, "static_transform");
             }
