@@ -127,33 +127,6 @@ int main(int argc, char** argv) {
   bool pc_rec = false;
   for(const rosbag::MessageInstance& m : view)
   {
-    if(pc_rec)
-    {
-      // transform the pcd
-      Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
-      transform.block<3, 3>(0, 0) = Eigen::Quaternionf(pose[6], pose[3],
-      pose[4], pose[5]).toRotationMatrix(); transform.block<3, 1>(0, 3) =
-      Eigen::Vector3f(pose[0], pose[1], pose[2]);
-      pcl::transformPointCloud(*pcl_cloud, *pcl_cloud, transform);
-
-      if(save_map_pcd == 1)
-        pcl_cloud_map->insert(pcl_cloud_map->end(), pcl_cloud->begin(),
-        pcl_cloud->end());
-
-      // set the viewpoint -> CHECK PCD VIEWPOINT FIELD
-      pcl_cloud->sensor_origin_ = Eigen::Vector4f(pose[0], pose[1], pose[2],
-      0.0); pcl_cloud->sensor_orientation_ = Eigen::Quaternionf(pose[6],
-      pose[3], pose[4], pose[5]); // w, x, y, z
-
-      // save the pcd
-      std::ostringstream tmp_filename;
-      tmp_filename << save_pcd_folder << "/pcd/" << std::setfill('0') <<
-      std::setw(6) << count << ".pcd"; std::string pcd_file =
-      tmp_filename.str(); pcl::io::savePCDFileBinary(pcd_file, *pcl_cloud);
-
-      pc_rec = false;
-      count++;
-    }
     if(m.getTopic() == pc2_topic)
     {
       sensor_msgs::PointCloud2::ConstPtr pc2 =
@@ -182,14 +155,38 @@ int main(int argc, char** argv) {
         }
       }
     }
+    if(pc_rec)
+    {
+      // transform the pcd
+      Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
+      transform.block<3, 3>(0, 0) = Eigen::Quaternionf(pose[6], pose[3],pose[4], pose[5]).toRotationMatrix(); 
+      transform.block<3, 1>(0, 3) = Eigen::Vector3f(pose[0], pose[1], pose[2]);
+      pcl::transformPointCloud(*pcl_cloud, *pcl_cloud, transform);
+
+      if(save_map_pcd == 1)
+        pcl_cloud_map->insert(pcl_cloud_map->end(), pcl_cloud->begin(),
+        pcl_cloud->end());
+
+      // set the viewpoint -> CHECK PCD VIEWPOINT FIELD
+      pcl_cloud->sensor_origin_ = Eigen::Vector4f(pose[0], pose[1], pose[2], 0.0); 
+      pcl_cloud->sensor_orientation_ = Eigen::Quaternionf(pose[6], pose[3], pose[4], pose[5]); // w, x, y, z
+
+      // save the pcd
+      std::ostringstream tmp_filename;
+      tmp_filename << save_pcd_folder << "/pcd/" << std::setfill('0') <<
+      std::setw(6) << count << ".pcd"; std::string pcd_file =
+      tmp_filename.str(); pcl::io::savePCDFileBinary(pcd_file, *pcl_cloud);
+
+      pc_rec = false;
+      count++;
+    }
   }
   TOC("Extract pcd files from rosbag", true);
   if(save_map_pcd == 1)
   {
     std::ostringstream tmp_filename;
     // last folder in the path
-    std::string folder_name =
-    save_pcd_folder.substr(save_pcd_folder.find_last_of("/\\") + 1);
+    std::string folder_name = save_pcd_folder.substr(save_pcd_folder.find_last_of("/\\") + 1);
     tmp_filename << folder_name << "/" << "raw_map.pcd";
     std::string pcd_file = tmp_filename.str();
     LOG(INFO) << pcd_file;
