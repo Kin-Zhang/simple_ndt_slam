@@ -44,6 +44,51 @@ void NDTMapper::setupRos() {
   save_map_srv = nh_.advertiseService("/save_map", &NDTMapper::saveMap, this);
 }
 
+void NDTMapper::setTF(){
+
+  geometry_msgs::TransformStamped transform_;
+  tf2::Quaternion q_base, q_;
+  // Set the origin and rotation for the "map" to "base_link" transform
+  transform_.header.stamp = current_scan_time;
+  transform_.header.frame_id = "map";
+  transform_.child_frame_id = "base_link";
+  transform_.transform.translation.x = current_pose.x;
+  transform_.transform.translation.y = current_pose.y;
+  transform_.transform.translation.z = current_pose.z;
+
+  q_base.setRPY(current_pose.roll, current_pose.pitch, current_pose.yaw);
+  transform_.transform.rotation.x = q_base.x();
+  transform_.transform.rotation.y = q_base.y();
+  transform_.transform.rotation.z = q_base.z();
+  transform_.transform.rotation.w = q_base.w();
+
+  br_.sendTransform(transform_);
+
+  if (no_b2l_tf) {
+    // Set the origin and rotation for the "base_link" to "lidar_frame" transform
+    transform_.header.stamp = current_scan_time;
+    transform_.header.frame_id = "base_link";
+    transform_.child_frame_id = lidar_frame;
+    transform_.transform.translation.x = b2l_tf[0];
+    transform_.transform.translation.y = b2l_tf[1];
+    transform_.transform.translation.z = b2l_tf[2];
+
+    q_.setRPY(b2l_tf[3], b2l_tf[4], b2l_tf[5]);
+    transform_.transform.rotation.x = q_.x();
+    transform_.transform.rotation.y = q_.y();
+    transform_.transform.rotation.z = q_.z();
+    transform_.transform.rotation.w = q_.w();
+
+    br_.sendTransform(transform_);
+
+    // Set the origin and rotation for the "base_link" to "odom" transform
+    transform_.header.stamp = current_scan_time;
+    transform_.header.frame_id = "base_link";
+    transform_.child_frame_id = "odom";
+
+    br_.sendTransform(transform_);
+  }
+}
 void NDTMapper::points_callback(
     const sensor_msgs::PointCloud2::ConstPtr &input) {
   common::Timer timer_total;
@@ -75,7 +120,7 @@ void NDTMapper::points_callback(
       calTranslation(scan_ptr, transformed_scan_ptr, filtered_scan_ptr);
 
   // 3. Pub all result message
-  tf::Matrix3x3 mat_l, mat_b;
+  tf2::Matrix3x3 mat_l, mat_b;
   t_base_link = t_localizer * tf_ltob; // from lidar to base_link fix matrix
   mat_l = setValue(t_localizer);
   mat_b = setValue(t_base_link);
@@ -84,24 +129,8 @@ void NDTMapper::points_callback(
   guess_base_pose.setPose(t_base_link, mat_b);
   current_pose = guess_base_pose;
 
-  // pub tf message
-  tf::Transform transform_;
-  tf::Quaternion q_base, q_;
-  transform_.setOrigin(
-      tf::Vector3(current_pose.x, current_pose.y, current_pose.z));
-  q_base.setRPY(current_pose.roll, current_pose.pitch, current_pose.yaw);
-  transform_.setRotation(q_base);
-  br_.sendTransform(
-      tf::StampedTransform(transform_, current_scan_time, "map", "base_link"));
-  if (no_b2l_tf) {
-    transform_.setOrigin(tf::Vector3(b2l_tf[0], b2l_tf[1], b2l_tf[2]));
-    q_.setRPY(b2l_tf[3], b2l_tf[4], b2l_tf[5]);
-    transform_.setRotation(q_);
-    br_.sendTransform(tf::StampedTransform(transform_, current_scan_time,
-                                           "base_link", lidar_frame));
-    br_.sendTransform(tf::StampedTransform(transform_, current_scan_time,
-                                           "base_link", "odom"));
-  }
+  // 4. pub tf message
+  setTF();
 
   double shift = (current_pose - added_pose).calDistance();
   if (shift >= config_.min_add_scan_shift) {
@@ -233,7 +262,7 @@ Pose NDTMapper::MsgPose2Pose(const nav_msgs::Odometry::ConstPtr &input) {
 
 template <typename Type>
 void NDTMapper::Pose2MsgPose(Type msg_ptr, const Pose current_value) {
-  tf::Quaternion q;
+  tf2::Quaternion q;
   q.setRPY(current_value.roll, current_value.pitch, current_value.yaw);
 
   msg_ptr->position.x = current_value.x;
@@ -250,26 +279,32 @@ void NDTMapper::setupMembers() {
 }
 
 void NDTMapper::getTF() {
-  tf::TransformListener tf_listener;
-  tf::StampedTransform tf_baselink2primarylidar;
+  tf2_ros::Buffer tf_buffer;
+  tf2_ros::TransformListener tf_listener(tf_buffer);
+  geometry_msgs::TransformStamped tf_baselink2primarylidar;
 
   double tf_x, tf_y, tf_z, tf_roll, tf_pitch, tf_yaw;
   bool received_tf = false;
 
   // 1. Try getting base_link -> lidar TF from TF tree
-  try {
-    nh_private_.getParam("lidar_frame", lidar_frame);
-    tf_listener.waitForTransform("base_link", lidar_frame, ros::Time(),
-                                 ros::Duration(1.0));
-    tf_listener.lookupTransform("base_link", lidar_frame, ros::Time(),
-                                tf_baselink2primarylidar);
-    received_tf = true;
-  } catch (tf::TransformException &ex) {
-    ROS_WARN(
-        "Query base_link to primary lidar frame through TF tree failed: %s",
-        ex.what());
-    no_b2l_tf = true;
+  nh_private_.getParam("lidar_frame", lidar_frame);
+  if(tf_buffer.canTransform("base_link", lidar_frame, ros::Time(), ros::Duration(1.0)))
+  {
+    try{
+      tf_baselink2primarylidar = tf_buffer.lookupTransform("base_link", lidar_frame, ros::Time());
+      received_tf = true;
+    }
+    catch (tf2::TransformException &ex) {
+      ROS_WARN("Query base_link to primary lidar frame through TF tree failed: %s", ex.what());
+      received_tf = false;
+      no_b2l_tf = true;
+    }
+  }
+  else
+  {
+    ROS_WARN("Query base_link to primary lidar frame through TF tree failed");
     received_tf = false;
+    no_b2l_tf = true;
   }
 
   // 2. Try getting from config files
@@ -284,28 +319,42 @@ void NDTMapper::getTF() {
                 << b2l_tf[0] << b2l_tf[1] << b2l_tf[2] << b2l_tf[3] << b2l_tf[4]
                 << b2l_tf[5];
 
-    tf::Vector3 trans(b2l_tf[0], b2l_tf[1], b2l_tf[2]);
-    tf::Quaternion quat;
+    tf_baselink2primarylidar.transform.translation.x = b2l_tf[0];
+    tf_baselink2primarylidar.transform.translation.y = b2l_tf[1];
+    tf_baselink2primarylidar.transform.translation.z = b2l_tf[2];
+
+    tf2::Quaternion quat;
     quat.setRPY(b2l_tf[3], b2l_tf[4], b2l_tf[5]);
-    tf_baselink2primarylidar.setOrigin(trans);
-    tf_baselink2primarylidar.setRotation(quat);
+
+    tf_baselink2primarylidar.transform.rotation.x = quat.x();
+    tf_baselink2primarylidar.transform.rotation.y = quat.y();
+    tf_baselink2primarylidar.transform.rotation.z = quat.z();
+    tf_baselink2primarylidar.transform.rotation.w = quat.w();
+
     received_tf = true;
   }
 
   if (received_tf) {
     ROS_INFO("base_link to primary lidar transform queried successfully");
 
-    tf_x = tf_baselink2primarylidar.getOrigin().getX();
-    tf_y = tf_baselink2primarylidar.getOrigin().getY();
-    tf_z = tf_baselink2primarylidar.getOrigin().getZ();
+    tf_x = tf_baselink2primarylidar.transform.translation.x;
+    tf_y = tf_baselink2primarylidar.transform.translation.y;
+    tf_z = tf_baselink2primarylidar.transform.translation.z;
+
     Eigen::Translation3f tl_btol(tf_x, tf_y, tf_z); // tl: translation
 
     LOG(INFO) << "LOAD TF success, baselink to LiDAR: [x,y,z,roll,pitch,yaw]: "
               << tf_x << " , "<< tf_y << " , "<< tf_z << " , "<< tf_roll << " , "<< tf_pitch
               << " , " << tf_yaw;
 
-    tf::Matrix3x3(tf_baselink2primarylidar.getRotation())
-        .getRPY(tf_roll, tf_pitch, tf_yaw);
+    tf2::Quaternion quat(tf_baselink2primarylidar.transform.rotation.x,
+                        tf_baselink2primarylidar.transform.rotation.y,
+                        tf_baselink2primarylidar.transform.rotation.z,
+                        tf_baselink2primarylidar.transform.rotation.w);
+
+    tf2::Matrix3x3 mat(quat);
+    mat.getRPY(tf_roll, tf_pitch, tf_yaw);
+
     Eigen::AngleAxisf rot_x_btol(tf_roll,
                                  Eigen::Vector3f::UnitX()); // rot: rotation
     Eigen::AngleAxisf rot_y_btol(tf_pitch, Eigen::Vector3f::UnitY());

@@ -1,5 +1,5 @@
-lidar_frame: "rslidar"
-lidar_topic: "/rslidar_points"
+lidar_frame: "velodyne"
+lidar_topic: "/velodyne_points"
 odom_topic : "/leg_odom"
 imu_topic  : "/imu"
 
