@@ -6,8 +6,7 @@
  * Description: extract pcd file and also insert the pose in PCD VIEWPOINT Field
  * So that we don't need pose.csv file etc.
  *
- * Input: ROS bag file, LiDAR topic name, Odom topic name [Default is for
- * simple_ndt_slam] which is /odom_lidar, /auto_odom Output: PCD files!
+ * Input: ROS bag file, LiDAR topic name, Output: PCD files!
  */
 
 #include <glog/logging.h>
