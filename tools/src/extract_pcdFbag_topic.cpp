@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   Eigen:: Matrix4f base2sensor = Eigen::Matrix4f::Identity();
 
   std::string odom_topic = "/auto_odom";
-  std::string pc2_topic = "/rslidar_points";
+  std::string pc2_topic = "/odom_lidar";
   std::vector<std::string> topics = {odom_topic, pc2_topic};
   LOG(INFO) << "We will read odom topic: " << ANSI_BOLD<< odom_topic  << ANSI_RESET 
             << " and pc2 topic: " << ANSI_BOLD << pc2_topic << ANSI_RESET;
@@ -142,9 +142,7 @@ int main(int argc, char** argv) {
   if(save_map_pcd == 1)
   {
     std::ostringstream tmp_filename;
-    // last folder in the path
-    std::string folder_name = save_pcd_folder.substr(save_pcd_folder.find_last_of("/\\") + 1);
-    tmp_filename << folder_name << "/" << "raw_map.pcd";
+    tmp_filename << save_pcd_folder << "/" << "raw_map.pcd";
     std::string pcd_file = tmp_filename.str();
     pcl::io::savePCDFileBinary(pcd_file, *pcl_cloud_map);
     LOG(INFO) << "Save raw map pcd file: " << pcd_file << " with " << pcl_cloud_map->size() << " points";

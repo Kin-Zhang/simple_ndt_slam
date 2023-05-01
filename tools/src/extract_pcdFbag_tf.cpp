@@ -161,7 +161,19 @@ int main(int argc, char** argv) {
       Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
       transform.block<3, 3>(0, 0) = Eigen::Quaternionf(pose[6], pose[3],pose[4], pose[5]).toRotationMatrix(); 
       transform.block<3, 1>(0, 3) = Eigen::Vector3f(pose[0], pose[1], pose[2]);
-      pcl::transformPointCloud(*pcl_cloud, *pcl_cloud, transform);
+
+      // remove the points that are too close to the origin, specially for some dataset add 0,0,0 pts in pointcloud
+      pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud_tmp(new pcl::PointCloud<pcl::PointXYZI>());
+      double min_dis = 0.05;
+      for(auto p : pcl_cloud->points)
+      {
+        if(abs(p.x)<min_dis && abs(p.y)<min_dis && abs(p.z)<min_dis){
+          // LOG_EVERY_N(INFO, 100) << "We will remove this point: " << p.x << " " << p.y << " " << p.z;
+          continue;
+        }
+        pcl_cloud_tmp->push_back(p);
+      }
+      pcl::transformPointCloud(*pcl_cloud_tmp, *pcl_cloud, transform);
 
       if(save_map_pcd == 1)
         pcl_cloud_map->insert(pcl_cloud_map->end(), pcl_cloud->begin(),
@@ -185,9 +197,7 @@ int main(int argc, char** argv) {
   if(save_map_pcd == 1)
   {
     std::ostringstream tmp_filename;
-    // last folder in the path
-    std::string folder_name = save_pcd_folder.substr(save_pcd_folder.find_last_of("/\\") + 1);
-    tmp_filename << folder_name << "/" << "raw_map.pcd";
+    tmp_filename << save_pcd_folder << "/" << "raw_map.pcd";
     std::string pcd_file = tmp_filename.str();
     LOG(INFO) << pcd_file;
     pcl::io::savePCDFileBinary(pcd_file, *pcl_cloud_map);
