@@ -19,14 +19,16 @@ We assume that the odom and pose is already sync and have same time stamp, if yo
 - `_topic`: need sync pose and then specify the odom topic name.
 
 ### Usage
+
+Command:
 ```bash
-./bag2pcd_tf /home/kin/bags/kobuki/res_0425vlp2livox.bag /home/kin/Tmp
+./bag2pcd_tf <rosbag_path> <save_pcd_folder> <pc2_topic_name> <world_or_map_frame_id> [optional: set 1 to save raw map]
+
 ```
 
-If you want to the raw point map, you can use the following command, set 1 as the last parameter.
-
 ```bash
-./bag2pcd_tf /home/kin/bags/kobuki/res_0425vlp2livox.bag /home/kin/Tmp 1
+# example
+./bag2pcd_tf /home/kin/bags/kobuki/res_0425vlp2livox.bag /home/kin/Tmp/haupt_mp /points_raw map
 ```
 
 And here is the folder tree:

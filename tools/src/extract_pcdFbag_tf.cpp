@@ -34,6 +34,9 @@
 
 #include "timer.h"
 
+using PCDPoint = pcl::PointXYZ;
+// using PCDPoint = pcl::PointXYZRGB;
+
 int main(int argc, char** argv) {
   // Initialize the ROS system
   ros::init(argc, argv, "bag2pcd_tf");
@@ -46,17 +49,17 @@ int main(int argc, char** argv) {
   google::SetStderrLogging(google::INFO);
 
   // if no argv, return 0
-  if(argc < 4){
-    LOG(ERROR) << "./bag2pcd_tf <rosbag_path> <save_pcd_folder> <pc2_topic_name>";
+  if(argc < 5){
+    LOG(ERROR) << "./bag2pcd_tf <rosbag_path> <save_pcd_folder> <pc2_topic_name> <world_or_map_frame_id>";
     return 1;
   }
   std::string rosbag_path = argv[1];
   std::string save_pcd_folder = argv[2];
   std::string pc2_topic = argv[3];
-
+  std::string world_frame_id = argv[4];
   int save_map_pcd = 0;
-  if (argc > 4) {
-    save_map_pcd = std::stoi(argv[4]);
+  if (argc > 5) {
+    save_map_pcd = std::stoi(argv[5]);
     if (save_map_pcd == 1) {
       LOG(INFO) << "We will save map pcd file";
     }
@@ -84,10 +87,10 @@ int main(int argc, char** argv) {
   TIC;
   // Create a view for the bag with the desired topic
   rosbag::View view(bag, rosbag::TopicQuery(topics));
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud(
-      new pcl::PointCloud<pcl::PointXYZI>());
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud_map(
-      new pcl::PointCloud<pcl::PointXYZI>());
+  pcl::PointCloud<PCDPoint>::Ptr pcl_cloud(
+      new pcl::PointCloud<PCDPoint>());
+  pcl::PointCloud<PCDPoint>::Ptr pcl_cloud_map(
+      new pcl::PointCloud<PCDPoint>());
   std::vector<float> pose(7, 0.0);
   int count = 0;
 
@@ -111,7 +114,7 @@ int main(int argc, char** argv) {
               continue;
             }
 
-            if(transform.header.frame_id == "map" && static_frame_set){
+            if(transform.header.frame_id == world_frame_id && static_frame_set){
               static_transform.header.stamp = transform.header.stamp;
               tf_buffer.setTransform(static_transform, "static_transform");
             }
@@ -136,7 +139,11 @@ int main(int argc, char** argv) {
       {
         pcl::fromROSMsg(*pc2, *pcl_cloud);
         try{
-          geometry_msgs::TransformStamped transform = tf_buffer.lookupTransform("map", pc2->header.frame_id, pc2->header.stamp);
+          std::string frame_id = pc2->header.frame_id;
+          // make sure no '/' in the frame_id
+          frame_id.erase(std::remove(frame_id.begin(), frame_id.end(), '/'), frame_id.end());
+          geometry_msgs::TransformStamped transform = tf_buffer.lookupTransform(world_frame_id, frame_id, pc2->header.stamp);
+
           // Position
           pose[0] = transform.transform.translation.x;
           pose[1] = transform.transform.translation.y;
@@ -163,7 +170,7 @@ int main(int argc, char** argv) {
       transform.block<3, 1>(0, 3) = Eigen::Vector3f(pose[0], pose[1], pose[2]);
 
       // remove the points that are too close to the origin, specially for some dataset add 0,0,0 pts in pointcloud
-      pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud_tmp(new pcl::PointCloud<pcl::PointXYZI>());
+      pcl::PointCloud<PCDPoint>::Ptr pcl_cloud_tmp(new pcl::PointCloud<PCDPoint>());
       double min_dis = 0.05;
       for(auto p : pcl_cloud->points)
       {
