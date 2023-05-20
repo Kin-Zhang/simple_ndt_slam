@@ -213,6 +213,6 @@ int main(int argc, char** argv) {
   }
 
   LOG(INFO) << "Total pcd files: " << count << ANSI_GREEN << " Run successfully!" << ANSI_RESET; bag.close();
-
+  LOG(INFO) << "We will save pcd files in: " << save_pcd_folder << "/pcd/" << " Check it ^_^";
   return 0;
 }
