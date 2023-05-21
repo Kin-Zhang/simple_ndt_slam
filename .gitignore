@@ -3,4 +3,5 @@
 
 result/*
 
-build/*
+tools/build/*
+*.yaml

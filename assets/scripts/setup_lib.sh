@@ -1,6 +1,6 @@
 
 # ros package
-apt install -y ros-$ROS_DISTRO-tf2-geometry-msgs
+apt install -y ros-$ROS_DISTRO-tf2-geometry-msgs ros-$ROS_DISTRO-tf2-ros ros-$ROS_DISTRO-tf2-eigen
 apt install -y libomp-dev
 
 # install glog

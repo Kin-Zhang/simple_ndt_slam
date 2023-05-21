@@ -3,7 +3,8 @@
  * MIT License
  * Author: Kin ZHANG (https://kin-zhang.github.io/)
  * Date: 2022-12-02
- * Description: Extract the result bag for erasor package to settle down, check how to erasor the dynamics points in the map: https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam
+ * Description: Extract the result bag for erasor package to settle down, 
+ check how to erasor the dynamics points in the map: https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam
 '''
 
 
@@ -18,7 +19,7 @@ import roslaunch
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--bag-path', default='/home/kin/bags/autoware/res_three_people_back_xuzhou.bag')
-parser.add_argument('--save-dir', default='/home/kin/bags/autoware/three_people_back_xuzhou')
+parser.add_argument('--save-dir', default='/home/kin/bags/autoware/sub_three_people_back_xuzhou')
 parser.add_argument('--odom',  default='/auto_odom')
 parser.add_argument('--lidar', default='/odom_lidar')
 args = parser.parse_args()

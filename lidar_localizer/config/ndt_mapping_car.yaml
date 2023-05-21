@@ -1,5 +1,5 @@
 lidar_frame: "velodyne"
-lidar_topic: "/points_raw"
+lidar_topic: "/velodyne_points"
 
 # output things ================ >
 odom_lidar_topic: "/odom_lidar" # sensor_msgs::PointCloud2
@@ -41,7 +41,7 @@ leaf_size: 0.5
 min_scan_range: 0.5
 
 # Ignore points far than this value (meters) (default 200.0)
-max_scan_range: 20.0
+max_scan_range: 50.0
 
 # Minimum distance between points to be added to the final map (default 1.0)
 min_add_scan_shift: 0.2

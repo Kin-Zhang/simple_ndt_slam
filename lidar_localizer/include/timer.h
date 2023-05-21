@@ -18,6 +18,7 @@
 #define ANSI_MAGENTA "\033[1m\x1b[35m"
 #define ANSI_CYAN "\033[1m\x1b[36m"
 #define ANSI_RESET "\x1b[0m"
+#define ANSI_BOLD "\033[1m"
 
 namespace common {
 

@@ -9,26 +9,11 @@ Package Usage, using one LiDAR to do SLAM, <u>no IMU no camera needed</u>, of co
 
 - Localization
 - Mapping
-- Dynamics points remove, Kin's fork for directly on this package also: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam) from [LimHyungTae/ERASOR](https://github.com/LimHyungTae/ERASOR)
-
-<details>
-  <summary>Effects shown here [**remember modify the topic name on config**]</summary>
-
-   Simple_ndt_slam:
-
-   https://user-images.githubusercontent.com/35365764/205377663-ba10b9db-400a-4330-8249-f7abd69247b1.mp4
-
-   Simple_ndt_slam data to ERASOR:
-
-   https://user-images.githubusercontent.com/35365764/205382532-4a6b89b3-f639-4685-bca0-d5867b4f9ea3.mp4
-
-   ![](assets/readme/ERASOR_effect.png)
-
-</details>
+- Dynamics points remove, check [our benchmark repo](https://github.com/KTH-RPL/DynamicMap_Benchmark)
 
 
 CHANGE LOG:
-
+- 2023/05/21: Update to Dynamic Removal Benchmark link. This repo can provide the dataset format from rosbag to required format.
 - 2022/12/2: For more people to use this package, Change README to English version. Here is a [chinese readme before](README_CN.md)
 - 2022/10/19: Update: download test Kitti dataset bag: [onedrive link: kitti_sequence11_half.bag](https://hkustconnect-my.sharepoint.com/:u:/g/personal/qzhangcb_connect_ust_hk/EXqmutFjAbpPsYVe5r91KXEBhLlqP7anlNBJqTMHIOkfqw?e=RoRVgF) and follow building steps, modify the bag path in `ndt_mapping_kitti.launch` and roslaunch it.
 
@@ -155,45 +140,31 @@ TODO Function: post-processing Loop closure after saving the poses and pcd
 
 ### B: Remove dynamics points in the map
 
-Kin's fork for directly on this package also: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam) from [LimHyungTae/ERASOR](https://github.com/LimHyungTae/ERASOR)
+Check [our benchmark repo](https://github.com/KTH-RPL/DynamicMap_Benchmark).
 
-1. First you need launch with rosbag record in launch files:
-
+1. First run your bag with simple_ndt_slam with `rosbag record` line in the launch file
    ```xml
-     <arg name="record_bag" default="/home/kin/bags/autoware/res_odom_lidar.bag" />
-     <node pkg="rosbag" type="record" name="bag_record" args="--output-name $(arg record_bag) /auto_odom /odom_lidar /tf" />
-   ```
-   Save the global map
-   ```xml
-   rosservice call /save_map '/home/kin/bags/autoware/all_topics/cones_people.pcd' 0.0
+   <node pkg="rosbag" type="record" name="bag_record" args="--output-name $(arg record_bag) /auto_odom /repub_points /tf /tf_static" />
    ```
 
-2. Then use the python scripts to extract the dataset, sorry I didn't with C++ :)
-
+2. Then run the tools to get the pcd folder to required format for [DynamicMap Benchmark](https://github.com/KTH-RPL/DynamicMap_Benchmark)
+   One more thing to note, if your poincloud msg is xyzrgb remember change the code `using PCDPoint = pcl::PointXYZRGB;` etc.
    ```bash
-   python3 lidar_localizer_utils/extract_bag.py --bag-path "/home/kin/bags/autoware/res_odom_lidar.bag" --save-dir "/home/kin/bags/autoware/results/res_odom_lidar"
+   cd tools
+   cmake -B build && cmake --build build
+   # format
+   ./bag2pcd_tf <rosbag_path> <save_pcd_folder> <pc2_topic_name> <world_or_map_frame_id>
+   # example
+   ./bag2pcd_tf /home/kin/pointclouds.bag /home/kin/Tmp /camera/rgb/points world
    ```
+   Then you will have the `/home/kin/Tmp/pcd` folder with all the pcd files include the pose and already transform to world frame.
 
-3. config files modifed which is in [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam). Modifed all the dir path correct
-
-   ```yaml
-   # these three path is needed be changed
-   initial_map_path: "/home/kin/bags/autoware/results/cones_people.pcd" # global map save path
-   save_path: "/home/kin/bags/autoware/results" # save removed done pcd path
-   data_dir: "/home/kin/bags/autoware/results/res_odom_lidar" # same dir with --save-dir
+3. Run the [DynamicMap Benchmark](https://github.com/KTH-RPL/DynamicMap_Benchmark). Check the methods in the `methods` folder, all methods in this repo can run the dataset you just generated. For example:
+   ```bash
+   ./octomap_run ${data_path} ${config.yaml} -1
+   ./dufomap_run ${data_path}
    ```
-
-
-4. RUN IT! Please check there: [Kin-Zhang/ERASOR](https://github.com/Kin-Zhang/ERASOR/tree/simple_ndt_slam)
-
-Run pcl_viewer to see the effect:
-
-```bash
-sudo apt-get install pcl-tools
-pcl_viewer -multiview 1 bongeunsa_result.pcd origin_map.pcd
-```
-
-![](assets/readme/ERASOR_effect.png)
+   You will get the clean map in the data folder. Here is the effect: [TODO add compared img]
 
 ## Other Infos
 
