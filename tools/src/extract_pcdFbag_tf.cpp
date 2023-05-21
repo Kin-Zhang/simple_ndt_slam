@@ -16,6 +16,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl/filters/filter.h>
 
 #include <ros/ros.h>
 #include <rosbag/bag.h>
@@ -34,7 +35,7 @@
 
 #include "timer.h"
 
-using PCDPoint = pcl::PointXYZ;
+using PCDPoint = pcl::PointXYZI;
 // using PCDPoint = pcl::PointXYZRGB;
 
 int main(int argc, char** argv) {
@@ -171,7 +172,7 @@ int main(int argc, char** argv) {
 
       // remove the points that are too close to the origin, specially for some dataset add 0,0,0 pts in pointcloud
       pcl::PointCloud<PCDPoint>::Ptr pcl_cloud_tmp(new pcl::PointCloud<PCDPoint>());
-      double min_dis = 0.05;
+      double min_dis = 0.01;
       for(auto p : pcl_cloud->points)
       {
         if(abs(p.x)<min_dis && abs(p.y)<min_dis && abs(p.z)<min_dis){
@@ -180,6 +181,11 @@ int main(int argc, char** argv) {
         }
         pcl_cloud_tmp->push_back(p);
       }
+      // remove NaN points
+      std::vector<int> indices;
+      pcl::removeNaNFromPointCloud(*pcl_cloud_tmp, *pcl_cloud_tmp, indices);
+
+      // Remember we transform! The Point Cloud!!
       pcl::transformPointCloud(*pcl_cloud_tmp, *pcl_cloud, transform);
 
       if(save_map_pcd == 1)

@@ -27,6 +27,7 @@ Command:
 ```
 
 ```bash
+roscore first
 # example
 ./bag2pcd_tf /home/kin/bags/kobuki/res_0425vlp2livox.bag /home/kin/Tmp/haupt_mp /points_raw map
 ```
