@@ -15,20 +15,26 @@ Goal: extract the bag which contains point cloud data and pose to pcd files, wil
 
 We assume that the odom and pose is already sync and have same time stamp, if you don't know how to do that please check simple_ndt_slam code `pubOtherMsgs` this function. If you are using other slam package and want to use this script, you need to sync the odom and pose by yourself or tf need be tf2, [check why tf2 instead of tf here](../assets/readme/WHY-TF2.md)
 
-- `_tf`: directly read pose msg from tf2
+- `_tf`: directly read pose msg from tf2, need `nav_msgs/Odometry` have same #frames with `sensor_msgs/PointCloud2`.
 - `_topic`: need sync pose and then specify the odom topic name.
 
 ### Usage
 
 Command:
 ```bash
+./bag2pcd <rosbag_path> <save_pcd_folder> <odom_topic> <cloud_topic> [optional: add 1 to save raw map]
 ./bag2pcd_tf <rosbag_path> <save_pcd_folder> <pc2_topic_name> <world_or_map_frame_id> [optional: set 1 to save raw map]
 
 ```
 
 ```bash
-roscore first
-# example
+# first
+roscore
+
+# example 1
+./bag2pcd /home/kin/bags/other_231222.bag /home/kin/bags/other_231222 /Odometry /cloud_registered_body
+
+# example 2
 ./bag2pcd_tf /home/kin/bags/kobuki/res_0425vlp2livox.bag /home/kin/Tmp/haupt_mp /points_raw map
 ```
 

@@ -39,14 +39,17 @@ int main(int argc, char** argv) {
 
   // if no argv, return 0
   if (argc < 3) {
-    LOG(ERROR) << "Please input the rosbag path and the folder to save pcd files";
+    // LOG(ERROR) << "Please input the rosbag path and the folder to save pcd files";
+    LOG(ERROR) << "Usage: " << argv[0] << " <rosbag_path> <save_pcd_folder> <odom_topic> <cloud_topic> [optional: add 1 to save raw map]";
     return 1;
   }
   std::string rosbag_path = argv[1];
   std::string save_pcd_folder = argv[2];
+  std::string odom_topic = argv[3];
+  std::string pc2_topic = argv[4];
   int save_map_pcd = 0;
-  if (argc > 3){
-    save_map_pcd = std::stoi(argv[3]);
+  if (argc > 5){
+    save_map_pcd = std::stoi(argv[5]);
     if(save_map_pcd == 1){
       LOG(INFO) << "We will save map pcd file";
     }
@@ -70,9 +73,6 @@ int main(int argc, char** argv) {
 
   // define a tf matrix
   Eigen:: Matrix4f base2sensor = Eigen::Matrix4f::Identity();
-
-  std::string odom_topic = "/auto_odom";
-  std::string pc2_topic = "/odom_lidar";
   std::vector<std::string> topics = {odom_topic, pc2_topic};
   LOG(INFO) << "We will read odom topic: " << ANSI_BOLD<< odom_topic  << ANSI_RESET 
             << " and pc2 topic: " << ANSI_BOLD << pc2_topic << ANSI_RESET;
