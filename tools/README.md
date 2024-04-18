@@ -55,5 +55,5 @@ And here is the folder tree:
 
 ```
 
-Want to know how to use this produced pcd? Check [DUFOMap](TODO)!
+Want to know how to use this produced pcd? Check [DynamicMap_Benchmark](https://github.com/KTH-RPL/DynamicMap_Benchmark) and [DUFOMap](https://github.com/KTH-RPL/dufomap)!
 
